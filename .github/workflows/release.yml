@@ -17,10 +17,6 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
     steps:
-      - name: Extract package version
-        id: package_version
-        run:  echo "::set-output name=VERSION::$(jq -r '.version' package.json)"
-
       - name: Check out Git repository
         uses: actions/checkout@v2
 
@@ -40,6 +36,12 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Extract package version
+        id: package_version
+        run: |
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION }}" # This line is for debugging
+
       - name: Build Electron App
         run: npm run build
 
@@ -48,7 +50,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/ChatFlowClient-Mac-${{ steps.package_version.outputs.VERSION }}-Setup.dmg
+            release/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,6 +59,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/ChatFlowClient-Windows-${{ steps.package_version.outputs.VERSION }}-Setup.exe
+            release/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
