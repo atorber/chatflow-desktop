@@ -50,15 +50,15 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
+            release/${{ env.VERSION }}/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Release Electron App
         if: matrix.os == 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            release/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
+            release/${{ env.VERSION }}/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

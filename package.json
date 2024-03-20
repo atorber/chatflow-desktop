@@ -1,6 +1,6 @@
 {
   "name": "chatflow-client",
-  "version": "1.0.2",
+  "version": "1.0.2-beta",
   "main": "dist-electron/main/index.js",
   "description": "Really simple Electron + Vue + Vite boilerplate.",
   "author": "Chao Lu <atorber@163.com>",
