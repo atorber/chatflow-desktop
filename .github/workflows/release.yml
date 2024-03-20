@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+    paths:
+      - 'package.json'
 
 jobs:
   build:
@@ -15,7 +17,7 @@ jobs:
     steps:
       - name: Extract package version
         id: package_version
-        run:  echo "::set-output name=VERSION::$(node -p "require('./package.json').version")"
+        run:  echo "::set-output name=VERSION::$(jq -r '.version' package.json)"
 
       - name: Check out Git repository
         uses: actions/checkout@v2
