@@ -12,6 +12,7 @@ import { FileBox } from "file-box";
 
 import {
   ChatFlow,
+  ChatFlowOptions,
   getBotOps,
   logForm,
   init,
@@ -280,13 +281,15 @@ const startBot = async () => {
     const ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom // 管理群的topic，可选
     const endpoint = botConfig.endpoint
 
-    const chatFlowOps = {
+    const chatFlowOps:ChatFlowOptions = {
       spaceId: VIKA_SPACE_ID,
       token: VIKA_TOKEN,
       adminRoomTopic: ADMINROOM_ADMINROOMTOPIC,
       endpoint,
       dataDir:dataPath,
     }
+
+    console.log('chatFlowOps:', chatFlowOps)
 
     // 构建wechaty机器人
     const ops = getBotOps(WECHATY_PUPPET, WECHATY_TOKEN) // 获取wechaty配置信息
@@ -436,8 +439,17 @@ ipcMain.on("get-config", () => {
   win.webContents.send("init", JSON.stringify(botConfig, undefined, 2));
 });
 
-ipcMain.on("start-bot", () => {
-  startBot();
+ipcMain.on("start-bot", async () => {
+  try {
+    console.log('start-bot...')
+    await startBot();
+    result = `${getTime()}:ChatFlow启动中...\n` + result;
+    win.webContents.send("action-result", result);
+  } catch (e) {
+    console.error("start-bot error", e);
+    result = `${getTime()}:ChatFlow启动失败：${e}\n` + result;
+    win.webContents.send("action-result", result);
+  }
 });
 
 ipcMain.on("start-test", (event, data) => {
