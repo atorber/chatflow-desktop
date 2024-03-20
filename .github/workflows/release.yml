@@ -52,7 +52,7 @@ jobs:
           files: |
             release/${{ env.VERSION }}/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Release Electron App
         if: matrix.os == 'windows-latest'
@@ -61,4 +61,4 @@ jobs:
           files: |
             release/${{ env.VERSION }}/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
