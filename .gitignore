@@ -28,3 +28,8 @@ release
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+config.json
+data/media/*
+data/db/*
+data/*
+chatflow.*.json
