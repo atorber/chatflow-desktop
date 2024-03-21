@@ -51,6 +51,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Extract package version
+        id: package_version
+        run: |
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION }}" # This line is for debugging
+
       - name: Download Artifact
         uses: actions/download-artifact@v3
         with:
@@ -64,8 +70,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           # 使用表达式和函数去除引用前缀，只保留标签名
-          tag_name: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
-          release_name: Release ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
           draft: false
           prerelease: false
 
