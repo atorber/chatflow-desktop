@@ -42,10 +42,10 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: release_on_${{ matrix. os }}
+          name: release_artifact
           path: release/
           retention-days: 5
-          
+
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v3
         with:
-          name: release_on_${{ matrix.os }}
+          name: release_artifact
           path: release/
 
       - name: Create Release
