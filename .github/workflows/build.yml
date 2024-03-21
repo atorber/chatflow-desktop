@@ -69,6 +69,10 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Zip Release Files
+        run: zip -r Release_Asset_${{ github.run_number }}.zip ./release/
+        
+
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
