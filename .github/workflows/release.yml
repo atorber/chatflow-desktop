@@ -42,9 +42,6 @@ jobs:
           echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
           echo "VERSION=${{ env.VERSION }}" # This line is for debugging
 
-      - name: print GH_TOKEN
-        run: echo ${{ secrets.GH_TOKEN }}
-
       - name: Build Electron App
         run: npm run build
 
