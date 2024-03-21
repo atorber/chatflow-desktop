@@ -55,7 +55,7 @@ jobs:
         id: package_version
         run: |
           echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
-          echo "VERSION=${{ env.VERSION }}" # This line is for debugging
+          echo "VERSION=${{ env.VERSION }}"
 
       - name: Download Artifact
         uses: actions/download-artifact@v3
@@ -69,7 +69,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # 使用表达式和函数去除引用前缀，只保留标签名
           tag_name: v${{ env.VERSION }}
           release_name: Release v${{ env.VERSION }}
           draft: false
