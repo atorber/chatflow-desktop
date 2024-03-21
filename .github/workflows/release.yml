@@ -1,0 +1,67 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - 'v*'
+    paths:
+      - 'package.json'
+
+jobs:
+  build:
+    name: Build and Release Electron App
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Extract package version
+        id: package_version
+        run: |
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION }}" # This line is for debugging
+
+      - name: print GH_TOKEN
+        run: echo ${{ secrets.GH_TOKEN }}
+
+      - name: Build Electron App
+        run: npm run build
+
+      - name: Release Electron App
+        if: matrix.os == 'windows-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/${{ env.VERSION }}/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Release Electron App
+        if: matrix.os == 'macos-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/${{ env.VERSION }}/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
