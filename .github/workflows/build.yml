@@ -63,8 +63,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          # 使用表达式和函数去除引用前缀，只保留标签名
+          tag_name: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
+          release_name: Release ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
           draft: false
           prerelease: false
 
