@@ -46,19 +46,19 @@ jobs:
         run: npm run build
 
       - name: Release Electron App
-        if: matrix.os == 'macos-latest'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            release/${{ env.VERSION }}/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      - name: Release Electron App
         if: matrix.os == 'windows-latest'
         uses: softprops/action-gh-release@v1
         with:
           files: |
             release/${{ env.VERSION }}/ChatFlowClient-Windows-${{ env.VERSION }}-Setup.exe
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Release Electron App
+        if: matrix.os == 'macos-latest'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/${{ env.VERSION }}/ChatFlowClient-Mac-${{ env.VERSION }}-Setup.dmg
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
