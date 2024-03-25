@@ -96,7 +96,7 @@ if (!fs.existsSync(join(dataPath, 'data/config.json'))) {
   fs.writeFileSync(join(dataDir, 'config.json'), JSON.stringify({
     "username": "",
     "password": "",
-    "endpoint": "http:chat.vlist.cc",
+    "endpoint": "http://chat.vlist.cc",
     "puppet": "wechaty-puppet-wechat4u",
     "token": "",
     "adminRoom": "",

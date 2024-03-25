@@ -77,3 +77,9 @@ export default {
 
 - [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
 - [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
+
+## 版本记录
+
+### 1.0.5
+
+- 修复默认接入地址错误问题
