@@ -25,7 +25,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@atorber/chatflow": "^3.0.0-Beta-14-4",
+    "@atorber/chatflow": "^3.0.21",
     "aedes": "^0.51.0",
     "axios": "^1.6.7",
     "file-box": "^1.5.5",
