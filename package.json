@@ -1,6 +1,6 @@
 {
   "name": "aiak-helper",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "main": "dist-electron/main/index.js",
   "description": "Really simple Electron + Vue + Vite boilerplate.",
   "author": "Chao Lu <atorber@163.com>",

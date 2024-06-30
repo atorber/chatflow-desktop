@@ -296,7 +296,7 @@ ipcMain.on("createTraining", (event, data) => {
     }
     case 'listFiles':
       const version = params
-      const examplesPath = version.indexOf('examples') ? path.dirname(version) : findExamplesPath(path.join(dataDir, version, 'examples'))
+      const examplesPath = version.indexOf('examples') > 0 ? path.dirname(version) : path.join(dataDir, version, 'examples')
       console.log('examplesPath:', examplesPath)
       send2web('listFiles', listFiles(examplesPath))
     default:
