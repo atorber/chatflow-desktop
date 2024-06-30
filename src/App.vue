@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from "./components/HelloWorld.vue";
+import Training from "./views/trainings/create.vue";
+
 </script>
 
 <template>
@@ -14,7 +16,7 @@ import HelloWorld from './components/HelloWorld.vue'
       <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
     </a>
   </div> -->
-  <HelloWorld msg="ChatFLow Starter" />
+  <Training msg="AIAK Helper" />
   <!-- <div class="flex-center">
     Place static files into the <code>/public</code> folder
     <img style="width: 2.4em; margin-left: .4em;" src="/logo.svg" alt="Logo">
@@ -36,7 +38,7 @@ import HelloWorld from './components/HelloWorld.vue'
 }
 
 .logo.electron:hover {
-  filter: drop-shadow(0 0 2em #9FEAF9);
+  filter: drop-shadow(0 0 2em #9feaf9);
 }
 
 .logo:hover {

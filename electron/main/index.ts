@@ -3,30 +3,19 @@ import { release } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import {
-  WechatyBuilder, ScanStatus,
-} from 'wechaty'
-
-import qrcodeTerminal from "qrcode-terminal";
-import { FileBox } from "file-box";
-
-import {
-  ChatFlow,
-  ChatFlowOptions,
-  getBotOps,
-  logForm,
-  init,
-  log,
-} from '@atorber/chatflow'
-
 import fs from 'fs'
 import path from 'path'
+import { FileBox } from 'file-box'
+import { extractFile } from './update'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
 
 console.log('__filename:', __filename)
 console.log('__dirname:', __dirname)
+
+const baseUrl = 'https://aihc-aiak-helper.bj.bcebos.com/shs/'
+const configUrl = baseUrl + 'versions.json'
 
 // 获取当前目录的根目录
 let rootPath = app.getPath('exe');
@@ -188,185 +177,11 @@ let win: BrowserWindow | null = null
 const preload = join(__dirname, '../preload/index.mjs')
 const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(process.env.DIST, 'index.html')
-
-async function onScan(qrcode, status) {
-  log.info("StarterBot", "onScan: %s(%s)", ScanStatus[status], status);
-  if (status === ScanStatus.Waiting || status === ScanStatus.Timeout) {
-    const qrcodeImageUrl = [
-      "https://wechaty.js.org/qrcode/",
-      encodeURIComponent(qrcode),
-    ].join("");
-    log.info(
-      "StarterBot",
-      "onScan: %s(%s) - %s",
-      ScanStatus[status],
-      status,
-      qrcodeImageUrl
-    );
-
-    qrcodeTerminal.generate(qrcode, { small: true }); // show qrcode on console
-    result = `${getTime()}:登录二维码地址 ${qrcodeImageUrl}\n` + result;
-    win.webContents.send("action-result", result);
-    // win.webContents.send("qrcode-result", qrcodeImageUrl);
-    let file: FileBox = null;
-    let filePath = "";
-    try {
-      file = FileBox.fromQRCode(qrcode);
-      // filePath = join(rootPath, "data/", file.name) ;
-      // log.info("StarterBot", "onScan: %s", filePath);
-      const base64 = await file.toBase64();
-      filePath = `data:image/png;base64,${base64}`;
-      // win.webContents.send("qrcode-result", '../../data/' + file.name);
-      win.webContents.send("qrcode-result", filePath);
-    } catch (e) {
-      result = `${getTime()}:二维码显示失败：${filePath}\n` + result;
-      log.error("二维码显示失败：", e);
-      win.webContents.send("action-result", result);
-    }
-  } else {
-    log.info("StarterBot", "onScan: %s(%s)", ScanStatus[status], status);
-  }
-}
-
-async function onLogin(user) {
-  log.info("onLogin", "%s login", user);
-  result = `${getTime()}:${user} login\n` + result;
-  win.webContents.send("action-result", result);
-
-  const roomList = await bot.Room.findAll();
-  console.info("room count:", roomList.length);
-  const contactList = await bot.Contact.findAll();
-  console.info("contact count:", contactList.length);
-  result =
-    `${getTime()}:contact count: ${contactList.length},room count: ${roomList.length
-    }\n` + result;
-  win.webContents.send("action-result", result);
-  win.webContents.send("qrcode-result", '');
-}
-
-async function onMessage(message) {
-  log.info("onMessage", JSON.stringify(message));
-
-  const text = message.text();
-  const room = message.room();
-  const talker = message.talker();
-  // 生成2024-1-28 21:51:06格式的时间
-  const timeutc = new Date().toLocaleString();
-  result =
-    `${timeutc} ${room ? "[" + (await room.topic()) + "]" : ""
-    } ${talker.name()}: ${text}\n` + result;
-  win.webContents.send("action-result", result);
-  // 1. send Image
-  if (/^ding$/i.test(message.text())) {
-    const fileBox = FileBox.fromUrl(
-      "https://wechaty.github.io/wechaty/images/bot-qr-code.png"
-    );
-    await message.say(fileBox);
-  }
-
-  // 2. send Text
-
-  if (/^dong$/i.test(message.text())) {
-    await message.say("dingdingding");
-  }
-}
-
-const startBot = async () => {
-  if (!wechatyIsOn) {
-    // 从环境变量中获取配置信息, 在环境变量中已经配置了以下信息或者直接赋值
-    const WECHATY_PUPPET = botConfig.puppet
-    const WECHATY_TOKEN = botConfig.token
-    const VIKA_SPACE_ID = botConfig.username
-    const VIKA_TOKEN = botConfig.password
-    const ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom // 管理群的topic，可选
-    const endpoint = botConfig.endpoint
-
-    const chatFlowOps:ChatFlowOptions = {
-      spaceId: VIKA_SPACE_ID,
-      token: VIKA_TOKEN,
-      adminRoomTopic: ADMINROOM_ADMINROOMTOPIC,
-      endpoint,
-      dataDir:dataPath,
-    }
-
-    console.log('chatFlowOps:', chatFlowOps)
-
-    // 构建wechaty机器人
-    const ops = getBotOps(WECHATY_PUPPET, WECHATY_TOKEN) // 获取wechaty配置信息
-    bot = WechatyBuilder.build(ops)
-
-    // 初始化检查数据库表，如果不存在则创建
-    try {
-      await init(chatFlowOps)
-    } catch (e) {
-      logForm('初始化检查失败：' + JSON.stringify(e))
-    }
-
-    const config = {
-      events: [
-        "login",
-        "logout",
-        "reset",
-        "ready",
-        "dirty",
-        "dong",
-        "error",
-        // 'heartbeat',
-        "friendship",
-        "message",
-        "post",
-        "room-invite",
-        "room-join",
-        "room-leave",
-        "room-topic",
-        "scan",
-      ],
-      mqtt: {
-        clientId: "ding-dong-test01", // 替换成自己的clientId，建议不少于16个字符串
-        host: "127.0.0.1",
-        password: "",
-        port: 1883,
-        username: "",
-      },
-      options: {
-        secrectKey: "",
-        simple: false,
-      },
-      token: "",
-    };
-
-    // 启用ChatFlow插件
-    bot.use(ChatFlow(chatFlowOps))
-
-    bot.on("login", onLogin);
-    bot.on("message", onMessage);
-    bot.on("scan", onScan);
-
-    bot
-      .start()
-      .then(() => {
-        wechatyIsOn = true;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${getTime()}:Bot已启动！\n` + result;
-        win.webContents.send("action-result", result);
-        return log.info("StarterBot", "Starter Bot Started.");
-      })
-      .catch((err) => {
-        console.error("bot start error", err);
-        wechatyIsOn = false;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${getTime()}:启动Bot时发生错误...${err}\n` + result;
-        win.webContents.send("action-result", result);
-      });
-  } else {
-    result = `${getTime()}:Bot已在运行中...\n` + result;
-    win.webContents.send("action-result", result);
-  }
-};
-
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Main window',
+    width: 1366,
+    height: 768,
     icon: join(process.env.VITE_PUBLIC, 'favicon.ico'),
     webPreferences: {
       preload,
@@ -399,12 +214,38 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-  // win.webContents.on('will-navigate', (event, url) => { }) #344
-  win.webContents.send('main-process-message', new Date().toLocaleString())
-  botConfig = readConfig();
-  console.log('botConfig:', botConfig)
-  win.webContents.send("action-result", JSON.stringify(botConfig, undefined, 2));
-  win.webContents.send('init', JSON.stringify(botConfig, undefined, 2));
+
+  // botConfig = readConfig();
+  // console.log('botConfig:', botConfig)
+
+  try {
+    // 下载配置文件
+    console.log('configUrl:', configUrl)
+    const versionFile = await FileBox.fromUrl(configUrl)
+    await versionFile.toFile(join(dataDir, 'versions.json'), true)
+
+    // 读取版本信息
+    const versionsInfo = JSON.parse(fs.readFileSync(join(dataDir, 'versions.json'), 'utf8'))
+    console.log('versionsInfo:', versionsInfo)
+
+
+    const versions = versionsInfo.versions
+
+    // 下载预置版本配置文件
+    for (const version of versions) {
+      const versionConfigUrl = `${baseUrl}${version}/examples.zip`
+      console.log('versionConfigUrl:', versionConfigUrl)
+      const versionConfigFile = await FileBox.fromUrl(versionConfigUrl)
+      const savePath = join(dataDir, version + '.zip')
+      await versionConfigFile.toFile(savePath, true)
+      await extractFile(savePath, join(dataDir, version))
+    }
+    send2web('getPreinstallVersions', versions)
+  } catch (error) {
+    console.error('Error downloading file:', error)
+    send2web('initError', [])
+  }
+
   win.on('closed', () => {
     win = null
   })
@@ -434,69 +275,111 @@ app.on('activate', () => {
   }
 })
 
-ipcMain.on("get-config", () => {
-  win.webContents.send("init", JSON.stringify(botConfig, undefined, 2));
-  // 设置环境变量
-  process.env.VIKA_SPACE_ID = botConfig.username
-  process.env.VIKA_TOKEN = botConfig.password
-  process.env.WECHATY_TOKEN = botConfig.token
-  process.env.WECHATY_PUPPET = botConfig.puppet
-  process.env.ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom
-  process.env.ENDPOINT = botConfig.endpoint
-});
+ipcMain.on("createTraining", (event, data) => {
+  console.log('createTraining on:', data)
 
-ipcMain.on("start-bot", async () => {
-  try {
-    console.log('start-bot...')
-    await startBot();
-    result = `${getTime()}:ChatFlow启动中...\n` + result;
-    win.webContents.send("action-result", result);
-  } catch (e) {
-    console.error("start-bot error", e);
-    result = `${getTime()}:ChatFlow启动失败：${e}\n` + result;
-    win.webContents.send("action-result", result);
+  const payload = JSON.parse(data)
+  const method = payload.method
+  const params: string = payload.params
+
+  switch (method) {
+    case 'getPreinstallVersions':
+      send2web(method, getPreinstallVersions())
+      break
+    case 'getCustomVersions': {
+
+      const filePath = params
+      send2web(method, getCustomVersions(filePath))
+      // 获取filePath所在的目录路径
+      const examplesPath = filePath.indexOf('version.txt') ? path.dirname(filePath) : filePath
+      send2web('listFiles', listFiles(examplesPath))
+      break
+    }
+    case 'listFiles':
+      const version = params
+      const examplesPath = findExamplesPath(path.join(dataDir, version, 'examples'))
+      send2web('listFiles', listFiles(examplesPath))
+    default:
+      break
   }
 });
 
-ipcMain.on("start-test", (event, data) => {
-  log.info("start-test", JSON.stringify(event));
-  log.info("start-test", data);
-  data = JSON.parse(data);
-  botConfig.username = data.username;
-  botConfig.password = data.password;
-  botConfig.endpoint = data.endpoint;
-  botConfig.puppet = data.puppet;
-  botConfig.token = data.token;
-  botConfig.adminRoom = data.adminRoom;
-  writeConfig(botConfig);
-  const timeutc = getTime();
-  result = `${timeutc}:配置信息...\n${JSON.stringify(botConfig, undefined, 2)}\n` + result;
-  win.webContents.send("action-result", result);
-});
-
-ipcMain.on("stop-bot", () => {
-  const timeutc = getTime();
-  if (wechatyIsOn && bot) {
-    bot
-      .stop()
-      .then(() => {
-        wechatyIsOn = false;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${timeutc}:bot已停止...\n` + result;
-        win.webContents.send("action-result", result);
-      })
-      .catch((err) => {
-        console.error("bot stop error", err);
-        result = `${timeutc}:bot停止时发生错误...${err}\n` + result;
-        win.webContents.send("action-result", result);
-      });
-    bot = null;
-    wechatyIsOn = false;
-  } else {
-    result = `${timeutc}:Bot未在运行...\n` + result;
-    win.webContents.send("action-result", result);
+const send2web = (method, params) => {
+  win.webContents.send("send2web", JSON.stringify({ method, params }));
+}
+// 获取自定义版本
+function getCustomVersions(filePath: string) {
+  const text = fs.readFileSync(filePath, 'utf8')
+  let versions = []
+  if (text) {
+    // version=2.2.1.1
+    versions = [text.replace('version=', '')]
   }
-});
+  return versions
+}
+
+// 获取预置版本列表
+function getPreinstallVersions() {
+  const versionsPath = path.join(dataDir, 'versions.json')
+  const text = fs.readFileSync(versionsPath, 'utf8')
+  const versions: string[] = JSON.parse(text).versions
+  return versions
+}
+
+// 列出文件下所有的文件，按层级展示为JSON格式，最后一层为文件的文本内容
+function listFiles(filePath: string) {
+  const files = fs.readdirSync(filePath);
+  const result = {}
+  files.forEach((file) => {
+    const stats = fs.statSync(path.join
+      (filePath, file));
+    if (stats.isDirectory()) {
+      result[file] = listFiles(path.join(filePath, file));
+    } else {
+      if (!file.startsWith('.')) {
+        result[file] = fs.readFileSync(path.join(filePath, file), 'utf-8');
+      }
+    }
+  });
+  return result;
+}
+
+// 寻找指定目录及其子目录下的examples目录，当找到第一个examples目录时返回并结束查找
+function findExamplesPath(dirPath: string): string | undefined {
+  if (dirPath.endsWith("examples")) {
+    return dirPath;
+  }
+  const files = fs.readdirSync(dirPath);
+  for (const file of files) {
+    const filePath = path.join(dirPath, file);
+    const stat = fs.statSync(filePath);
+    if (stat.isDirectory()) {
+      if (file === "examples") {
+        return filePath;
+      } else {
+        findExamplesPath(filePath);
+        const result: string | undefined = findExamplesPath(filePath);
+        if (result) {
+          return result;
+        }
+      }
+    }
+  }
+}
+
+// 读取路径下文件夹列表
+function loadFolderList(filePath: string) {
+  const files = fs.readdirSync(filePath);
+  return files.filter((file) => {
+    return fs.statSync(path.join(filePath, file)).isDirectory();
+  });
+}
+
+// 读取路径下文件列表
+function loadFileList(path: string) {
+  const files = fs.readdirSync(path);
+  return files;
+}
 
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {
