@@ -70,7 +70,7 @@
           </el-row>
           <el-alert
             v-if="form.source === '自定义版本'"
-            title="在examples目录中创建version.txt文件并增加一行文本版本信息，格式：version=2.1.0.1"
+            title="在examples目录中创建version.txt文件并增加一行文本版本信息，格式：version=2.1.0.1，选择examples/version.txt文件"
             type="warning"
           />
 
@@ -106,7 +106,7 @@
                 class="upload-demo"
                 action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
                 :limit="1"
-                :on-exceed="handleExceed"
+                :on-change="handleChange"
                 :auto-upload="false"
                 :show-file-list="false"
               >
@@ -119,7 +119,7 @@
               <el-tooltip
                 class="box-item"
                 effect="dark"
-                content="在examples目录中创建version.txt文件并增加一行文本版本信息，格式：version=2.1.0.1"
+                content="在examples目录中创建version.txt文件增加一行文本版本信息，格式：version=2.1.0.1，选择examples/version.txt文件"
                 placement="top-start"
               >
                 <el-icon color="#E6A23C"><InfoFilled /></el-icon>
@@ -295,13 +295,18 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
   switch (method) {
     case "getPreinstallVersions":
       form.preinstallVersions = params;
-      handleImageVersion(params[0]);
+      if (form.source === "预置版本") {
+        handleImageVersion(params[0]);
+      }
       break;
     case "getCustomVersions":
-      const imageUrl = `registry.baidubce.com/aihc-aiak/aiak-training-llm:ubuntu22.04-cu12.3-torch2.2.0-py310_v${params}_release`;
+      form.preinstallVersions = params;
+
+      const version = params[0];
+      const imageUrl = `registry.baidubce.com/aihc-aiak/aiak-training-llm:ubuntu22.04-cu12.3-torch2.2.0-py310_v${version}_release`;
       form.imageUrl = imageUrl;
-      form.version = params;
-      send2ipc("listFiles", form.version);
+      form.version = version;
+      send2ipc("listFiles", form.path);
       break;
     case "listFiles":
       form.infos = params;
@@ -327,9 +332,22 @@ function send2ipc(method: string, params: string) {
   window.ipcRenderer.send("createTraining", JSON.stringify({ method, params }));
 }
 
+const handleChange: any = (uploadFile: any, uploadFiles: any) => {
+  console.log("on handleChange", uploadFile);
+  const file = uploadFile;
+  console.log("file", file.raw);
+  if (file.raw.path.indexOf("examples") !== -1 && file.name === "version.txt") {
+    form.path = file.raw.path;
+    console.log("form.path", form.path);
+    send2ipc("getCustomVersions", form.path);
+  } else {
+    ElMessage.error("请选择正确的文件");
+  }
+};
+
 // 选择文件
 const handleExceed: UploadProps["onExceed"] = (files) => {
-  console.log("exceed", files);
+  console.log("on exceed", files);
   const file = files[0];
   if (file.name === "version.txt" && file.path.indexOf("examples") !== -1) {
     form.path = file.path;

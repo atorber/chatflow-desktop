@@ -287,7 +287,6 @@ ipcMain.on("createTraining", (event, data) => {
       send2web(method, getPreinstallVersions())
       break
     case 'getCustomVersions': {
-
       const filePath = params
       send2web(method, getCustomVersions(filePath))
       // 获取filePath所在的目录路径
@@ -297,7 +296,8 @@ ipcMain.on("createTraining", (event, data) => {
     }
     case 'listFiles':
       const version = params
-      const examplesPath = findExamplesPath(path.join(dataDir, version, 'examples'))
+      const examplesPath = version.indexOf('examples') ? path.dirname(version) : findExamplesPath(path.join(dataDir, version, 'examples'))
+      console.log('examplesPath:', examplesPath)
       send2web('listFiles', listFiles(examplesPath))
     default:
       break
@@ -328,6 +328,7 @@ function getPreinstallVersions() {
 
 // 列出文件下所有的文件，按层级展示为JSON格式，最后一层为文件的文本内容
 function listFiles(filePath: string) {
+
   const files = fs.readdirSync(filePath);
   const result = {}
   files.forEach((file) => {
