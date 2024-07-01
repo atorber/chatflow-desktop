@@ -1,6 +1,6 @@
 {
   "name": "aiak-helper",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "main": "dist-electron/main/index.js",
   "description": "Really simple Electron + Vue + Vite boilerplate.",
   "author": "Chao Lu <atorber@163.com>",
@@ -25,16 +25,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "adm-zip": "^0.5.14",
-    "aedes": "^0.51.0",
-    "axios": "^1.6.7",
     "element-plus": "^2.7.6",
-    "file-box": "^1.4.15",
-    "websocket-stream": "^5.5.2",
-    "xlsx": "^0.18.5"
+    "sync-request": "^6.1.0"
   },
   "devDependencies": {
-    "@element-plus/icons-vue": "^2.3.1",
     "@vitejs/plugin-vue": "^5.0.4",
     "electron": "^29.1.1",
     "electron-builder": "^24.13.3",

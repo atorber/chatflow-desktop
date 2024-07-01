@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url'
 
 import fs from 'fs'
 import path from 'path'
-import { FileBox } from 'file-box'
-import { extractFile } from './update'
+import {
+  downloadFile,
+  extractFile
+} from './update'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
@@ -221,8 +223,7 @@ async function createWindow() {
   try {
     // 下载配置文件
     console.log('configUrl:', configUrl)
-    const versionFile = await FileBox.fromUrl(configUrl)
-    await versionFile.toFile(join(dataDir, 'versions.json'), true)
+    await downloadFile(configUrl, join(dataDir, 'versions.json'))
 
     // 读取版本信息
     const versionsInfo = JSON.parse(fs.readFileSync(join(dataDir, 'versions.json'), 'utf8'))
@@ -235,9 +236,8 @@ async function createWindow() {
     for (const version of versions) {
       const versionConfigUrl = `${baseUrl}${version}/examples.zip`
       console.log('versionConfigUrl:', versionConfigUrl)
-      const versionConfigFile = await FileBox.fromUrl(versionConfigUrl)
       const savePath = join(dataDir, version + '.zip')
-      await versionConfigFile.toFile(savePath, true)
+      await downloadFile(versionConfigUrl, savePath)
       await extractFile(savePath, join(dataDir, version))
     }
     send2web('getPreinstallVersions', versions)
