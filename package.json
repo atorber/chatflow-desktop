@@ -26,8 +26,12 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@kubernetes/client-node": "^0.21.0",
     "adm-zip": "^0.5.14",
-    "element-plus": "^2.7.6"
+    "element-plus": "^2.7.6",
+    "fs-extra": "^11.2.0",
+    "js-tool-big-box": "^1.0.52",
+    "yaml": "^2.4.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

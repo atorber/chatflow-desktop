@@ -219,30 +219,107 @@
         <el-tag type="success">训练任务参数信息 {{ form.filePath }}</el-tag>
 
         <el-form :model="form" label-width="auto" style="margin: 20px">
-          <el-form-item label="镜像地址">
-            <el-input
-              v-model="form.imageUrl"
-              type="textarea"
-              rows="1"
-              placeholder="选择配置后自动生成"
-            />
-          </el-form-item>
-          <el-form-item label="执行命令">
-            <el-input
-              v-model="form.command"
-              type="textarea"
-              rows="15"
-              placeholder="选择配置后自动生成"
-            />
-          </el-form-item>
-          <el-form-item label="环境变量">
-            <el-input
-              v-model="form.env"
-              type="textarea"
-              rows="15"
-              placeholder="选择配置后自动生成"
-            />
-          </el-form-item>
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="镜像地址">
+                <el-input
+                  v-model="form.imageUrl"
+                  type="textarea"
+                  rows="1"
+                  placeholder="选择配置后自动生成"
+                  ref="imageUrl"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col
+              :span="2"
+              v-if="form.imageUrl"
+              @click="go2copy(form.imageUrl)"
+            >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="执行命令">
+                <el-input
+                  v-model="form.command"
+                  type="textarea"
+                  rows="15"
+                  placeholder="选择配置后自动生成"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col
+              :span="2"
+              v-if="form.command"
+              @click="go2copy(form.command)"
+            >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="环境变量">
+                <el-input
+                  v-model="form.env"
+                  type="textarea"
+                  rows="15"
+                  placeholder="选择配置后自动生成"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="2" v-if="form.env" @click="go2copy(form.env)">
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="YAML模板">
+                <el-input
+                  v-model="form.yaml"
+                  type="textarea"
+                  rows="15"
+                  placeholder="选择配置后自动生成"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="2" v-if="form.yaml" @click="go2copy(form.yaml)">
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+
           <!-- <el-form-item>
             <el-button type="primary" @click="onSubmit">保存</el-button>
             <el-button>取消</el-button>
@@ -601,7 +678,195 @@
           </el-row>
         </el-form>
 
-        <el-tag type="success">数据预处理任务参数信息 {{ form.filePath }}</el-tag>
+        <el-tag type="success"
+          >数据预处理任务参数信息 {{ form.filePath }}</el-tag
+        >
+
+        <el-form :model="form" label-width="auto" style="margin: 20px">
+          <el-form-item label="镜像地址">
+            <el-input
+              v-model="form.imageUrl"
+              type="textarea"
+              rows="1"
+              placeholder="选择配置后自动生成"
+            />
+          </el-form-item>
+          <el-form-item label="执行命令">
+            <el-input
+              v-model="form.command"
+              type="textarea"
+              rows="15"
+              placeholder="选择配置后自动生成"
+            />
+          </el-form-item>
+          <el-form-item label="环境变量">
+            <el-input
+              v-model="form.env"
+              type="textarea"
+              rows="15"
+              placeholder="选择配置后自动生成"
+            />
+          </el-form-item>
+          <!-- <el-form-item>
+            <el-button type="primary" @click="onSubmit">保存</el-button>
+            <el-button>取消</el-button>
+          </el-form-item> -->
+        </el-form>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'kubernetes'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <!-- <el-dropdown>
+            <el-icon style="margin-right: 8px; margin-top: 1px">
+              <setting />
+            </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>View</el-dropdown-item>
+                <el-dropdown-item>Add</el-dropdown-item>
+                <el-dropdown-item>Delete</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <span>Tom</span> -->
+          <span>集群操作</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <!-- <el-tag type="success">任务信息</el-tag> -->
+
+        <el-form :model="form" label-width="auto" style="margin: 20px">
+          <el-row :gutter="48">
+            <el-col :span="12">
+              <el-form-item label="镜像源">
+                <el-radio-group v-model="form.source" @change="handleSource">
+                  <el-radio value="预置版本">预置版本</el-radio>
+                  <el-radio value="自定义版本">自定义版本</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-alert
+            v-if="form.source === '自定义版本'"
+            title="在examples目录中创建version.txt文件并增加一行文本版本信息，格式：version=2.1.0.1，选择examples/version.txt文件"
+            type="warning"
+          />
+
+          <el-row :gutter="48">
+            <el-col :span="8">
+              <el-form-item label="镜像版本">
+                <el-select
+                  v-model="form.version"
+                  placeholder="选择镜像版本"
+                  :disabled="form.source === '自定义版本'"
+                >
+                  <el-option
+                    v-for="item in form.preinstallVersions"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8" v-if="form.source === '自定义版本'">
+              <el-form-item label="文件路径">
+                <el-input
+                  disabled
+                  v-model="form.path"
+                  placeholder="脚本存放路径"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="3" v-if="form.source === '自定义版本'">
+              <el-upload
+                ref="upload"
+                class="upload-demo"
+                action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                :limit="1"
+                :on-change="handleChange"
+                :auto-upload="false"
+                :show-file-list="false"
+              >
+                <template #trigger>
+                  <el-button type="primary">选择文件</el-button>
+                </template>
+              </el-upload>
+            </el-col>
+            <el-col :span="2" v-if="form.source === '自定义版本'">
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="在examples目录中创建version.txt文件增加一行文本版本信息，格式：version=2.1.0.1，选择examples/version.txt文件"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><InfoFilled /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+          <el-row :gutter="48">
+            <el-col :span="8">
+              <el-form-item label="模型系列">
+                <el-select
+                  v-model="form.modelFamily"
+                  placeholder="选择模型系列"
+                  @change="handleModelFamily"
+                >
+                  <el-option
+                    v-for="item in form.modelFamilies"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="训练方式">
+                <el-select
+                  v-model="form.trainingMethod"
+                  placeholder="选择训练方式"
+                  @change="handleTrainingMethod"
+                >
+                  <!-- trainingMethods作为选项 -->
+                  <el-option
+                    v-for="item in form.trainingMethods"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item
+                label="微调方式"
+                v-if="form.trainingMethod === 'finetuning'"
+              >
+                <el-select
+                  v-model="form.fineTuningMethod"
+                  placeholder="选择微调方式"
+                  @change="handleFineTuningMethod"
+                >
+                  <!-- fineTuningMethods作为选项 -->
+                  <el-option
+                    v-for="item in form.fineTuningMethods"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </el-form>
+
+        <el-tag type="success"
+          >数据预处理任务参数信息 {{ form.filePath }}</el-tag
+        >
 
         <el-form :model="form" label-width="auto" style="margin: 20px">
           <el-form-item label="镜像地址">
@@ -662,6 +927,9 @@ import {
   // UploadRawFile,
   ElMessage,
 } from "element-plus";
+
+import { yamlCreate } from "./yamlCreate.js";
+import { dataBox } from "js-tool-big-box";
 
 defineProps<{ msg: string }>();
 
@@ -880,7 +1148,7 @@ function handleModelConvertTarget(val: string) {
     form.filePath = filePath;
     handleCommand(command);
   } else {
-    clearCommand()
+    clearCommand();
   }
 }
 
@@ -897,7 +1165,7 @@ function handleModelConvert(val: string) {
     form.modelConvertSources = Object.keys(form.modelConvertInfo[val]);
     handleModelConvertSource(form.modelConvertSources[0]);
   } else {
-    clearCommand()
+    clearCommand();
     form.modelConvertNames = [];
     form.modelConvertSources = [];
     form.modelConvertSource = "";
@@ -984,6 +1252,8 @@ function handleEnvList(command: string) {
   const envList = command.match(/\${[A-Z_]+:-".*?"}/g);
   let env =
     "#根据实际需求配置修改环境变量，推荐使用示例中的默认路径存放，尽量通过环境变量修改配置而不是直接修改执行命令\n\n";
+
+  let envs = "";
   if (envList) {
     for (const item of envList) {
       const key = item.match(/[A-Z_]+/g);
@@ -1037,10 +1307,24 @@ function handleEnvList(command: string) {
         }
 
         env += "\n";
+
+        envs += `                - name: ${newKey}\n`;
+        envs += `                  value: ${newValue}\n`;
       }
     }
   }
   form.env = env;
+  form.envs = envs;
+
+  // 将command的每一行缩进4个空格
+  const commandList = command.split("\n");
+  let newCommand = "";
+  for (const item of commandList) {
+    newCommand += `    ${item}\n`;
+  }
+  const yaml = yamlCreate(newCommand, form.imageUrl, envs);
+  console.log("yaml demo", yaml);
+  form.yaml = yaml;
 }
 
 // 计算可选的模型列表
@@ -1062,33 +1346,28 @@ function handleModelList(version: string) {
   }
 }
 
-// 复制镜像地址到剪贴板
-function handleCopyImageUrl() {
-  const { imageUrl } = form;
-  if (imageUrl) {
-    // 复制imageUrl
-    // $copyText(imageUrl);
+const go2copy = (text: string) => {
+  dataBox.copyText(
+    text,
+    () => {
+      ElMessage.success("复制成功");
+    },
+    () => {
+      ElMessage.error("复制失败");
+    }
+  );
+};
 
-    ElMessage.success("复制成功");
-  }
+function getNamespacePods() {
+  send2ipc("getNamespacePods", "");
 }
 
-// 复制执行命令到剪贴板
-function handleCopyCommand() {
-  const { command } = form;
-  if (command) {
-    // $copyText(command);
-    ElMessage.success("复制成功");
-  }
+function listNodes() {
+  send2ipc("listNodes", "");
 }
 
-// 复制环境变量到剪贴板
-function handleCopyEnv() {
-  const { env } = form;
-  if (env) {
-    // $copyText(env);
-    ElMessage.success("复制成功");
-  }
+function updateKubeconfig() {
+  send2ipc("updateKubeconfig", "");
 }
 </script>
 

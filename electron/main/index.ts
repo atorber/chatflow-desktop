@@ -10,6 +10,8 @@ import {
   extractFile
 } from './update'
 
+import { updateKubeconfig, getNamespacePods, listNodes } from './kubectl.js'
+
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
 
@@ -299,6 +301,26 @@ ipcMain.on("createTraining", (event, data) => {
       const examplesPath = version.indexOf('examples') > 0 ? path.dirname(version) : path.join(dataDir, version, 'examples')
       console.log('examplesPath:', examplesPath)
       send2web('listFiles', listFiles(examplesPath))
+    // 更新kubeconfig
+    case 'updateKubeconfig': {
+      const res = updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
+      if (res) {
+        send2web('updateKubeconfig', res)
+      } else {
+        send2web('updateKubeconfig', 'updateKubeconfig failed')
+      }
+      break
+    }
+    case 'getNamespacePods': {
+      const res = getNamespacePods()
+      send2web('getNamespacePods', res)
+      break
+    }
+    case 'listNodes': {
+      const res = listNodes()
+      send2web('listNodes', res)
+      break
+    }
     default:
       break
   }
