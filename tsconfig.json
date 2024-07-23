@@ -11,9 +11,9 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
-    "types": ["element-plus/global", "js-tool-big-box"],
+    "types": ["js-tool-big-box"],
     "noEmit": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types", "./node_modules/element-plus"]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

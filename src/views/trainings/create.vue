@@ -1378,20 +1378,20 @@ const k8sActions = [
     placeholder: "输入Deployment yaml",
     log: "",
   },
-  // {
-  //   id: 0,
-  //   action: "获取节点列表",
-  //   res: "",
-  //   command: "",
-  //   log: "",
-  // },
-  // {
-  //   id: 1,
-  //   action: "获取PytorchJob列表",
-  //   res: "",
-  //   command: "",
-  //   log: "",
-  // },
+  {
+    id: 0,
+    action: "获取节点列表",
+    res: "",
+    command: "",
+    log: "",
+  },
+  {
+    id: 1,
+    action: "获取PytorchJob列表",
+    res: "",
+    command: "",
+    log: "",
+  },
 ];
 
 const k8sActionsData = [

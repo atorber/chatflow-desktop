@@ -1,6 +1,6 @@
 {
   "name": "aiak-helper",
-  "version": "0.5.0",
+  "version": "0.5.4",
   "main": "dist-electron/main/index.js",
   "description": "Really simple Electron + Vue + Vite boilerplate.",
   "author": "Chao Lu <atorber@163.com>",
@@ -28,7 +28,7 @@
     "@element-plus/icons-vue": "^2.3.1",
     "@kubernetes/client-node": "^0.21.0",
     "adm-zip": "^0.5.14",
-    "element-plus": "^2.7.6",
+    "element-plus": "^2.7.7",
     "fs-extra": "^11.2.0",
     "js-tool-big-box": "^1.0.52",
     "js-yaml": "^4.1.0",
