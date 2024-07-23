@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-without-gpu
+  labels:
+    app: jupyter-without-gpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-without-gpu
+  template:
+    metadata:
+      labels:
+        app: jupyter-without-gpu
+    spec:
+      containers:
+      - name: jupyter-lab
+        # image: cschranz/gpu-jupyter:v1.4_cuda-11.6_ubuntu-20.04
+        # image: registry.baidubce.com/public-tools/gpu-jupyter:v1.4_cuda-11.6_ubuntu-20.04
+        image: registry.baidubce.com/aihcp-public/gpu-jupyter:v1.6_cuda-12.0_ubuntu-22.04
+        ports:
+        - containerPort: 8888
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: shm
+        - mountPath: /mnt/cluster # 建议PFS 存储在容器中的挂载点，与开发机挂载保持一致
+          name: data
+        securityContext:
+          capabilities:
+            add: ["IPC_LOCK"]
+        resources:
+          limits:
+            cpu: "8" # 添加CPU限制，示例为4核
+            memory: "16Gi" # 添加内存限制，示例为16GiB
+      schedulerName: volcano
+      volumes:
+      - hostPath:
+          path: /dev/shm
+        name: shm
+      - name: data
+        persistentVolumeClaim:
+          claimName: pvc-pfs

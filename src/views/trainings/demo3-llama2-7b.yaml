@@ -1,0 +1,49 @@
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
+metadata:
+  name: megatron-llama2-7b-tp1-pp1-dp8-zero1-luyc
+  namespace: default
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      restartPolicy: Never
+      template:
+        metadata:
+        spec:
+          schedulerName: volcano
+          containers:
+            - name: pytorch
+              image: registry.baidubce.com/aihc-aiak/aiak-training-llm:ubuntu22.04-cu12.3-torch2.2.0-py310_v2.1.0.1_release
+              imagePullPolicy: Always
+              command:
+                - bash
+                - -c
+                - sleep 1d
+                # - /workspace/Megatron-LM/examples/launch.sh
+              env:
+                - name: CUDA_DEVICE_MAX_CONNECTIONS
+                  value: "1"
+                       
+              resources:
+                limits:
+                  nvidia.com/gpu: 8
+                  rdma/hca: 1
+              securityContext:
+                capabilities:
+                  add: [ "IPC_LOCK" ]
+              volumeMounts:
+                - mountPath: /dev/shm
+                  name: cache-volume
+                - name: data
+                  mountPath: /mnt/cluster
+          volumes:
+            - name: cache-volume
+              emptyDir:
+                medium: Memory
+            - name: config-volume
+              configMap:
+                name: launch-cm-llama2-7b-tp1-pp1-dp8-zero1-luyc
+            - name: data
+              persistentVolumeClaim:
+                claimName: pvc-pfs

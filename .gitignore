@@ -34,4 +34,4 @@ data/db/*
 data/*
 chatflow.*.json
 src/assets/shs/*
-src/assets/shs/2.1.0.1/examples/baichuan2/checkpoint_convert/convert_baichuan2_13b_hf_to_megatron_core.sh
+electron/main/kubectl-hwl.conf

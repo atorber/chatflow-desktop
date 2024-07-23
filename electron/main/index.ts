@@ -10,7 +10,7 @@ import {
   extractFile
 } from './update'
 
-import { updateKubeconfig, getNamespacePods, listNodes } from './kubectl.js'
+import { updateKubeconfig, getNamespacePods, getNamespacePytorchJobs, listNodes, createDeployment, createJob, createPytorchJob } from './kubectl.js'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
@@ -277,12 +277,12 @@ app.on('activate', () => {
   }
 })
 
-ipcMain.on("createTraining", (event, data) => {
+ipcMain.on("createTraining", async (event, data) => {
   console.log('createTraining on:', data)
 
   const payload = JSON.parse(data)
   const method = payload.method
-  const params: string = payload.params
+  const params: any = payload.params
 
   switch (method) {
     case 'getPreinstallVersions':
@@ -303,7 +303,7 @@ ipcMain.on("createTraining", (event, data) => {
       send2web('listFiles', listFiles(examplesPath))
     // 更新kubeconfig
     case 'updateKubeconfig': {
-      const res = updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
+      const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
       if (res) {
         send2web('updateKubeconfig', res)
       } else {
@@ -312,13 +312,54 @@ ipcMain.on("createTraining", (event, data) => {
       break
     }
     case 'getNamespacePods': {
-      const res = getNamespacePods()
+      const res = await getNamespacePods()
       send2web('getNamespacePods', res)
       break
     }
     case 'listNodes': {
-      const res = listNodes()
+      const res = await listNodes()
       send2web('listNodes', res)
+      break
+    }
+    case 'createDeployment': {
+      const res = await createDeployment(params)
+      send2web('createDeployment', res)
+      break
+    }
+    case 'createJob': {
+      const res = await createJob(params)
+      send2web('createJob', res)
+      break
+    }
+    case 'k8s': {
+      const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
+
+      if (res) {
+        send2web('updateKubeconfig', res)
+      } else {
+        send2web('updateKubeconfig', 'updateKubeconfig failed')
+      }
+
+      if (params.action === '创建PytorchJob') {
+        const res1 = await createPytorchJob(params.command)
+        send2web('k8s', res1)
+      } else if (params.action === '创建Job') {
+        const res1 = await createJob(params.command)
+        send2web('k8s', res1)
+
+      } else if (params.action === '创建Deployment') {
+        const res1 = await createDeployment(params.command)
+        send2web('k8s', res1)
+      } else if (params.action === '获取节点列表') {
+        const res1 = await listNodes()
+        send2web('k8s', res1)
+      } else if (params.action === '获取PytorchJob列表') {
+        const res1 = await getNamespacePytorchJobs()
+        send2web('k8s', res1)
+      } else {
+        send2web('k8s', 'action failed')
+      }
+
       break
     }
     default:

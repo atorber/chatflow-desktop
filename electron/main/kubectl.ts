@@ -1,7 +1,10 @@
 import fs from 'fs';
 import * as yaml from 'yaml';
 import * as path from 'path';
-import { KubeConfig, CoreV1Api, AppsV1Api } from '@kubernetes/client-node';
+// const k8s = require('@kubernetes/client-node');
+import * as k8s from '@kubernetes/client-node';
+import { KubeConfig, CoreV1Api, AppsV1Api, BatchV1Api, V1Job, V1ObjectMeta } from '@kubernetes/client-node';
+import jsyaml from 'js-yaml';
 
 const KUBECONFIG_PATH = path.join(process.env.HOME || process.env.USERPROFILE || '', '.kube', 'config');
 
@@ -27,10 +30,10 @@ export async function updateKubeconfig(newConfigPath: string): Promise<any> {
     try {
         const config = await switchKubeconfig(newConfigPath);
         console.log('Kubeconfig switched successfully.');
-        return config;
+        return { config };
     } catch (err) {
         console.error('Error:', err);
-        return false;
+        return err;
     }
 }
 
@@ -42,11 +45,11 @@ export async function listNodes() {
         const coreV1Api = kc.makeApiClient(CoreV1Api);
 
         const res = await coreV1Api.listNode();
-        console.log('Nodes in the cluster:');
-        return JSON.stringify(res.body, null, 2);
+        console.log('Nodes in the cluster:', JSON.stringify(res.body));
+        return res
     } catch (err) {
         console.error('Error listing nodes:', err);
-        return `Error listing nodes:${err}`;
+        return err;
     }
 }
 
@@ -56,17 +59,59 @@ export async function getNamespacePods(namespace?: string): Promise<any> {
     const coreV1Api = kc.makeApiClient(CoreV1Api);
 
     try {
-        const res: any = coreV1Api.listNamespacedPod(namespace || 'default')
-        console.log('listNamespacedPod', JSON.stringify(res.body, null, 2));
-        return JSON.stringify(res.body, null, 2);
+        const res: any = await coreV1Api.listNamespacedPod(namespace || 'default')
+        console.log('listNamespacedPod', JSON.stringify(res.body));
+        return res;
     } catch (err) {
         console.error('Error listing pods:', err);
-        return `Error listing pods:${err}`;
+        return err;
     }
 
 }
 
-async function createNamespace(name: string) {
+export async function getNamespacePytorchJobs(namespace?: string): Promise<any> {
+    const kc = new KubeConfig();
+    kc.loadFromDefault();
+    const k8sApi = kc.makeApiClient(k8s.CustomObjectsApi);
+
+    try {
+        const res: any = await k8sApi.listNamespacedCustomObject(
+            'kubeflow.org',
+            'v1',
+            namespace||'default',
+            'pytorchjobs'
+          )
+        console.log('listNamespacedCustomObject', JSON.stringify(res.body));
+        return res;
+    } catch (err) {
+        console.error('Error listNamespacedCustomObject:', err);
+        return err;
+    }
+
+}
+
+export async function getNamespaceMPIJobs(namespace?: string): Promise<any> {
+    const kc = new KubeConfig();
+    kc.loadFromDefault();
+    const k8sApi = kc.makeApiClient(k8s.CustomObjectsApi);
+
+    try {
+        const res: any = await k8sApi.listNamespacedCustomObject(
+            'kubeflow.org',
+            'v1',
+            namespace||'default',
+            'mpijobs'
+          )
+        console.log('listNamespacedCustomObject', JSON.stringify(res.body));
+        return res;
+    } catch (err) {
+        console.error('Error listNamespacedCustomObject:', err);
+        return err;
+    }
+
+}
+
+export async function createNamespace(name: string) {
     try {
         const kc = new KubeConfig();
         kc.loadFromDefault();
@@ -87,7 +132,7 @@ async function createNamespace(name: string) {
 }
 
 // 创建 Deployment
-async function createDeployment(yamlPath: string) {
+export async function createDeployment(yamlString: string) {
     try {
         const kc = new KubeConfig();
         kc.loadFromDefault();
@@ -95,15 +140,73 @@ async function createDeployment(yamlPath: string) {
         const appsV1Api = kc.makeApiClient(AppsV1Api);
 
         // 读取 YAML 文件
-        const yamlContent = fs.readFileSync(yamlPath, 'utf8');
+        // const yamlContent = fs.readFileSync(yamlPath, 'utf8');
+        const yamlContent = yamlString;
 
         // 解析 YAML 内容
-        const deployment = require('js-yaml').load(yamlContent);
+        const deployment = jsyaml.load(yamlContent);
 
         // 创建 Deployment
         const res = await appsV1Api.createNamespacedDeployment('default', deployment);
         console.log('Deployment created:', res.body.metadata.name);
+        return res
     } catch (err) {
         console.error('Error creating deployment:', err);
+        return err;
+    }
+}
+
+// 创建 Job
+export async function createJob(yamlString: string) {
+    try {
+        const kc = new KubeConfig();
+        kc.loadFromDefault();
+
+        const batchV1Api = kc.makeApiClient(BatchV1Api);
+
+        // 读取 YAML 文件
+        // const yamlContent = fs.readFileSync(yamlPath, 'utf8');
+        const yamlContent = yamlString
+
+        // 解析 YAML 内容
+        const job = jsyaml.load(yamlContent);
+
+        // 创建 Job
+        const res = await batchV1Api.createNamespacedJob('default', job);
+        console.log('Job created:', res.body.metadata.name);
+        return res;
+    } catch (err) {
+        console.error('Error creating job:', err);
+        return err;
+    }
+}
+
+export async function createPytorchJob(yamlString: string) {
+    try {
+        const kc = new KubeConfig();
+        kc.loadFromDefault();
+
+        const k8sApi = kc.makeApiClient(k8s.CustomObjectsApi);
+
+        // 读取 YAML 文件
+        // const yamlContent = fs.readFileSync(yamlPath, 'utf8');
+        const yamlContent = yamlString
+
+        // 解析 YAML 内容
+        const pytorchJob = jsyaml.load(yamlContent);
+
+        // 创建 Job
+        const res = await k8sApi.createNamespacedCustomObject(
+            'kubeflow.org',
+            'v1',
+            'default',
+            'pytorchjobs',
+            pytorchJob
+        );
+        console.log('Job created:', res.body);
+        return res;
+    } catch (err) {
+        console.error('Error creating job:', err);
+        return err;
     }
 }

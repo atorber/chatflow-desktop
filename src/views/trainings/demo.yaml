@@ -175,34 +175,9 @@ spec:
                 #- sleep 1d
                 - /workspace/Megatron-LM/examples/launch.sh
               env:
-                - name: MEGATRON_PATH
-                  value: /workspace/AIAK-Megatron
-                - name: AIAK_TRAINING_PATH
-                  value: /workspace/AIAK-Training-LLM
-                - name: DATA_PATH
-                  value: /mnt/cluster/aiak-training-llm/dataset/sft_aplaca_zh_data.json
-                - name: DATA_PATH
-                  value: /mnt/cluster/aiak-training-llm/baichuan2/sft_aplaca_zh_tokenized
-                - name: DATASET_CONFIG_PATH
-                  value: /workspace/AIAK-Training-LLM/configs/sft_dataset_config.json
-                - name: DATA_CACHE_PATH
-                  value: /mnt/cluster/aiak-training-llm/baichuan2/sft_aplaca_zh_data_cache
-                - name: TOKENIZER_PATH
-                  value: /mnt/cluster/huggingface.co/baichuan-inc/Baichuan2-13B-Base/
-                - name: CHECKPOINT_PATH
-                  value: /mnt/cluster/aiak-training-llm/baichuan2/baichuan2_13b_tp1_pp2_fp16
-                - name: TENSORBOARD_PATH
-                  value: /mnt/cluster/aiak-training-llm/tensorboard-log/baichuan2-13B-sft
-                - name: MASTER_ADDR
-                  value: localhost
-                - name: MASTER_PORT
-                  value: 6000
-                - name: WORLD_SIZE
-                  value: 1
-                - name: RANK
-                  value: 0
-
-                             
+                - name: CUDA_DEVICE_MAX_CONNECTIONS
+                  value: "1"
+                       
               resources:
                 limits:
                   nvidia.com/gpu: 8
