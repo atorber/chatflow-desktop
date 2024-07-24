@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, Plugin } from 'vue'
 import App from './App.vue'
 
 import ElementPlus from 'element-plus'
@@ -17,7 +17,7 @@ const app = createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
-app.use(ElementPlus)
+app.use(ElementPlus as unknown as Plugin)
 app.mount('#app')
   .$nextTick(() => {
     postMessage({ payload: 'removeLoading' }, '*')

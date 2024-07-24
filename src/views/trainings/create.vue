@@ -1209,7 +1209,7 @@
           <el-row :gutter="48">
             <el-col :span="24">
               <!-- <el-button type="primary" @click="onSubmit">保存</el-button> -->
-              <el-button color="red" @click="handlek8s">更新</el-button>
+              <el-button color="red" @click="updatek8sConfig">更新</el-button>
             </el-col>
           </el-row>
         </el-form>
@@ -1477,6 +1477,11 @@ function handlek8s() {
     ElMessage.error("请输入指令参数");
   }
 }
+
+const updatek8sConfig = (k8sconfig:string) => {
+  console.log("k8sconfig", k8sconfig);
+  // send2ipc("updateKubeconfig", k8sRecord.log);
+};
 
 const updateNodeList = () => {
   if (updateNodeListIsLoading.value) {
@@ -1990,18 +1995,6 @@ const go2copy = (text: string) => {
     }
   );
 };
-
-function getNamespacePods() {
-  send2ipc("getNamespacePods", "");
-}
-
-function listNodes() {
-  send2ipc("listNodes", "");
-}
-
-function updateKubeconfig() {
-  send2ipc("updateKubeconfig", "");
-}
 </script>
 
 <style scoped>

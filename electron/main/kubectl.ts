@@ -8,9 +8,9 @@ import jsyaml from 'js-yaml';
 
 const KUBECONFIG_PATH = path.join(process.env.HOME || process.env.USERPROFILE || '', '.kube', 'config');
 
-async function loadKubeconfig(filePath: string): Promise<any> {
-    const fileContent = await fs.readFileSync(filePath, 'utf8');
-    return yaml.parse(fileContent);
+async function loadKubeconfig(newConfigString: string): Promise<any> {
+    // const fileContent = await fs.readFileSync(filePath, 'utf8');
+    return yaml.parse(newConfigString);
 }
 
 async function saveKubeconfig(config: any): Promise<void> {
@@ -19,16 +19,16 @@ async function saveKubeconfig(config: any): Promise<void> {
     return config;
 }
 
-async function switchKubeconfig(newConfigPath: string): Promise<void> {
-    const newConfig = await loadKubeconfig(newConfigPath);
+async function switchKubeconfig(newConfigString: string): Promise<void> {
+    const newConfig = await loadKubeconfig(newConfigString);
     const config = await saveKubeconfig(newConfig);
     return config;
 }
 
-export async function updateKubeconfig(newConfigPath: string): Promise<any> {
+export async function updateKubeconfig(newConfig: string): Promise<any> {
 
     try {
-        const config = await switchKubeconfig(newConfigPath);
+        const config = await switchKubeconfig(newConfig);
         console.log('Kubeconfig switched successfully.');
         return { config };
     } catch (err) {

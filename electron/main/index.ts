@@ -303,7 +303,7 @@ ipcMain.on("createTraining", async (event, data) => {
       send2web('listFiles', listFiles(examplesPath))
     // 更新kubeconfig
     case 'updateKubeconfig': {
-      const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
+      const res = await updateKubeconfig(params)
       if (res) {
         send2web('updateKubeconfig', res)
       } else {
@@ -332,13 +332,13 @@ ipcMain.on("createTraining", async (event, data) => {
       break
     }
     case 'k8s': {
-      const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
+      // const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
 
-      if (res) {
-        send2web('updateKubeconfig', res)
-      } else {
-        send2web('updateKubeconfig', 'updateKubeconfig failed')
-      }
+      // if (res) {
+      //   send2web('updateKubeconfig', res)
+      // } else {
+      //   send2web('updateKubeconfig', 'updateKubeconfig failed')
+      // }
 
       if (params.action === '创建PytorchJob') {
         const res1 = await createPytorchJob(params.command)
