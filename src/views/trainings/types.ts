@@ -98,33 +98,21 @@ export const MenusInstance: MenusInstance = {
         // }
       ]
     },
-    {
-      index: "2",
-      title: "工具箱",
-      icon: "Tools",
-      items: [
-        {
-          index: "devmachine",
-          title: "开发机部署"
-        },
-        {
-          index: "3-2",
-          title: "训练模板"
-        },
-      ],
-      // subMenus: [
-      //   {
-      //     index: "kubernetesInfo",
-      //     title: "集群",
-      //     items: [
-      //       {
-      //         index: "1-4-1",
-      //         title: "并行策略搜索"
-      //       }
-      //     ]
-      //   }
-      // ]
-    },
+    // {
+    //   index: "2",
+    //   title: "工具箱",
+    //   icon: "Tools",
+    //   items: [
+    //     {
+    //       index: "devmachine",
+    //       title: "开发机部署"
+    //     },
+    //     {
+    //       index: "3-2",
+    //       title: "训练模板"
+    //     },
+    //   ],
+    // },
     {
       index: "4",
       title: "集群",

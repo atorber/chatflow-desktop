@@ -8,8 +8,8 @@
         <el-menu
           :default-openeds="menus.defaultOpeneds"
           :default-active="menus.defaultActive"
-          @select="handleSelect"
-          @click="handleClick"
+          @select="handleMenuSelect"
+          @click="handleMenuClick"
         >
           <template v-for="menu in menus.items" :key="menu.index">
             <el-sub-menu :index="menu.index">
@@ -70,7 +70,7 @@
       <el-main>
         <!-- <el-tag type="success">任务信息</el-tag> -->
         <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-descriptions title="模型信息" column="3" size="large" border>
+          <el-descriptions title="模型信息" :column="3" size="large" border>
           </el-descriptions>
           <el-row :gutter="48">
             <el-col :span="12">
@@ -306,7 +306,7 @@
         </el-form>
         <el-divider />
         <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-descriptions title="资源配置" column="3" size="large" border>
+          <el-descriptions title="资源配置（开发中...）" :column="3" size="large" border>
           </el-descriptions>
           <el-row :gutter="48">
             <el-col :span="8">
@@ -406,7 +406,7 @@
             <el-switch :v-model="false" />
           </el-form-item>
           <el-divider border-style="dotted" />
-          <el-descriptions title="高级选项" column="3" size="large" border>
+          <el-descriptions title="高级选项" :column="3" size="large" border>
           </el-descriptions>
           <el-form-item label="容错">
             <el-switch :v-model="false" />
@@ -467,8 +467,8 @@
             </el-row>
           </el-card>
           <el-form-item>
-            <el-button type="primary">提交任务</el-button>
-            <el-button>重置</el-button>
+            <el-button type="primary" disabled>提交任务</el-button>
+            <el-button disabled>重置</el-button>
           </el-form-item>
         </el-form>
       </el-main>
@@ -1197,12 +1197,12 @@
         <!-- <el-tag type="success">任务信息</el-tag> -->
 
         <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-form-item label="k8sconfig">
+          <el-form-item label="kubeconfig">
             <el-input
-              v-model="k8sRecord.log"
+              v-model="k8sRecord.config"
               type="textarea"
               rows="25"
-              placeholder="输入k8sconfig"
+              placeholder="输入kubeconfig"
             />
           </el-form-item>
 
@@ -1240,28 +1240,28 @@
         <!-- <el-tag type="success">任务信息</el-tag> -->
 
         <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-form-item label="AK">
+          <el-form-item label="Access Key">
             <el-input
               v-model="k8sRecord.command"
               type="textarea"
               rows="3"
-              placeholder="输入AK"
+              placeholder="输入百度云Access Key"
             />
           </el-form-item>
 
-          <el-form-item label="SK">
+          <el-form-item label="Secret Key">
             <el-input
               v-model="k8sRecord.command"
               type="textarea"
               rows="3"
-              placeholder="输入SK"
+              placeholder="输入百度云Secret Key"
             />
           </el-form-item>
 
           <el-row :gutter="48">
             <el-col :span="24">
               <!-- <el-button type="primary" @click="onSubmit">保存</el-button> -->
-              <el-button color="red" @click="handlek8s">更新</el-button>
+              <el-button color="red" @click="handlek8s" disabled>更新</el-button>
             </el-col>
           </el-row>
         </el-form>
@@ -1361,6 +1361,7 @@ const k8sActions = [
     command: "",
     placeholder: "输入PytorchJob yaml",
     log: "",
+    config: "",
   },
   {
     id: 3,
@@ -1369,6 +1370,7 @@ const k8sActions = [
     command: "",
     placeholder: "输入Job yaml",
     log: "",
+    config: "",
   },
   {
     id: 2,
@@ -1377,6 +1379,7 @@ const k8sActions = [
     command: "",
     placeholder: "输入Deployment yaml",
     log: "",
+    config: "",
   },
   {
     id: 0,
@@ -1384,6 +1387,7 @@ const k8sActions = [
     res: "",
     command: "",
     log: "",
+    config: "",
   },
   {
     id: 1,
@@ -1391,6 +1395,7 @@ const k8sActions = [
     res: "",
     command: "",
     log: "",
+    config: "",
   },
 ];
 
@@ -1442,11 +1447,11 @@ const handleActionChange = (val: string) => {
   console.log("action", val);
 
   const record: any = k8sActions.find((item) => item.action === val);
-  console.log("records", JSON.stringify(record, null, 2));
+  // console.log("records", JSON.stringify(record, null, 2));
   k8sRecord.action = record.action;
   k8sRecord.placeholder = record.placeholder || "";
   k8sRecord.command = "";
-  console.log("k8sRecord after", JSON.stringify(k8sRecord, null, 2));
+  // console.log("k8sRecord after", JSON.stringify(k8sRecord, null, 2));
 };
 
 const upload = ref<UploadInstance>();
@@ -1468,9 +1473,16 @@ const k8sInfo = reactive({
 const updateNodeListIsLoading = ref(false);
 const updatePyTorchJobListIsLoading = ref(false);
 
+// 初始化时载入updateKubeconfig
+send2ipc("updateKubeconfig", "");
+
 // 执行k8s命令
 function handlek8s() {
-  console.log("handlek8s k8sRecord", JSON.stringify(k8sRecord, null, 2));
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+  // console.log("handlek8s k8sRecord", JSON.stringify(k8sRecord, null, 2));
   if ((k8sRecord.command && k8sRecord.placeholder) || !k8sRecord.placeholder) {
     send2ipc("k8s", k8sRecord);
   } else {
@@ -1478,12 +1490,18 @@ function handlek8s() {
   }
 }
 
-const updatek8sConfig = (k8sconfig:string) => {
-  console.log("k8sconfig", k8sconfig);
-  // send2ipc("updateKubeconfig", k8sRecord.log);
+const updatek8sConfig = (k8sconfig: string) => {
+  console.log("updatek8sConfig k8sconfig", k8sconfig);
+
+  send2ipc("updateKubeconfig", k8sRecord.config);
 };
 
 const updateNodeList = () => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+
   if (updateNodeListIsLoading.value) {
     return;
   }
@@ -1502,6 +1520,10 @@ const updateNodeList = () => {
 };
 
 const updatePyTorchJobList = () => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
   if (updatePyTorchJobListIsLoading.value) {
     return;
   }
@@ -1515,28 +1537,35 @@ const updatePyTorchJobList = () => {
 };
 
 // 切换菜单
-function handleSelect(index: string) {
-  console.log("index", index);
+function handleMenuSelect(index: string) {
+  // console.log("index", index);
   menuName.value = index;
-  console.log("menuName", menuName.value);
+  // console.log("menuName", menuName.value);
   handleModelFamily(form.modelFamily);
+
   if (index === "jobList" && k8sInfo.PyTorchJobList.length === 0) {
     updatePyTorchJobList();
   }
   if (index === "nodeList" && k8sInfo.NodeList.length === 0) {
     updateNodeList();
   }
+
+  if (index === "k8sconfig") {
+    send2ipc("updateKubeconfig", "");
+  }
 }
 
 // 点击菜单
-function handleClick(item: string) {
-  console.log("item", item);
+function handleMenuClick(item: any) {
+  console.log("handleMenuClick item");
 }
 
 // 接收消息
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
   // console.log("[Receive send2web]:", ...args);
   const { method, params } = JSON.parse(args[0]);
+  console.log("method", method);
+  console.log("params", params);
 
   switch (method) {
     case "getPreinstallVersions":
@@ -1612,7 +1641,8 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
       break;
     case "updateKubeconfig":
       ElMessage.success("Kubeconfig更新成功");
-      k8sRecord.log = JSON.stringify(params, null, 2);
+      console.log("updateKubeconfig k8sRecord.config", params);
+      k8sRecord.config = params;
       break;
     case "initError":
       ElMessage.error("初始化失败, 请退出重启程序");
@@ -1719,7 +1749,7 @@ function getConverts() {
   const convertInfo: any = {};
   if (modelFamily && form.infos[modelFamily]["checkpoint_convert"]) {
     const keys = Object.keys(form.infos[modelFamily]["checkpoint_convert"]);
-    console.log("keys", keys);
+    // console.log("keys", keys);
     for (const convert of keys) {
       console.log("convert", convert);
       // const convert = key.split("_")[1] + '_' + key.split("_")[2];
@@ -1743,7 +1773,7 @@ function getConverts() {
       }
     }
 
-    console.log("convertInfo", JSON.stringify(convertInfo));
+    // console.log("convertInfo", JSON.stringify(convertInfo));
 
     form.modelConvertInfo = convertInfo;
     form.modelConvertNames = Object.keys(convertInfo);
@@ -1961,7 +1991,7 @@ function handleEnvList(command: string) {
     newCommand += `    ${item}\n`;
   }
   const yaml = yamlCreate(newCommand, form.imageUrl, form.envs);
-  console.log("yaml demo", yaml);
+  // console.log("yaml demo", yaml);
   form.yaml = yaml;
 }
 

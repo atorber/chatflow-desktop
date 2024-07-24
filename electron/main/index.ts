@@ -10,7 +10,7 @@ import {
   extractFile
 } from './update'
 
-import { updateKubeconfig, getNamespacePods, getNamespacePytorchJobs, listNodes, createDeployment, createJob, createPytorchJob } from './kubectl.js'
+import { updateKubeconfig, getNamespacePods, getNamespacePytorchJobs, listNodes, createDeployment, createJob, createPytorchJob, getKubeconfig } from './kubectl.js'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
@@ -296,18 +296,31 @@ ipcMain.on("createTraining", async (event, data) => {
       send2web('listFiles', listFiles(examplesPath))
       break
     }
-    case 'listFiles':
+    case 'listFiles': {
       const version = params
       const examplesPath = version.indexOf('examples') > 0 ? path.dirname(version) : path.join(dataDir, version, 'examples')
       console.log('examplesPath:', examplesPath)
       send2web('listFiles', listFiles(examplesPath))
+      break
+    }
     // 更新kubeconfig
     case 'updateKubeconfig': {
-      const res = await updateKubeconfig(params)
-      if (res) {
-        send2web('updateKubeconfig', res)
+      console.log('updateKubeconfig:', params)
+      if (params) {
+        const res = await updateKubeconfig(params)
+        if (res) {
+          send2web('updateKubeconfig', res)
+        } else {
+          send2web('updateKubeconfig', 'updateKubeconfig failed')
+        }
       } else {
-        send2web('updateKubeconfig', 'updateKubeconfig failed')
+        try {
+          const res = await getKubeconfig()
+          console.log('getKubeconfig:', res)
+          send2web('updateKubeconfig', res)
+        } catch (error) {
+          send2web('updateKubeconfig', 'Kubeconfig not found')
+        }
       }
       break
     }

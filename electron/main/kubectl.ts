@@ -10,6 +10,7 @@ const KUBECONFIG_PATH = path.join(process.env.HOME || process.env.USERPROFILE ||
 
 async function loadKubeconfig(newConfigString: string): Promise<any> {
     // const fileContent = await fs.readFileSync(filePath, 'utf8');
+    // console.log('newConfigString:', newConfigString);
     return yaml.parse(newConfigString);
 }
 
@@ -19,18 +20,22 @@ async function saveKubeconfig(config: any): Promise<void> {
     return config;
 }
 
-async function switchKubeconfig(newConfigString: string): Promise<void> {
+export async function getKubeconfig(): Promise<any> {
+    const fileContent = await fs.readFileSync(KUBECONFIG_PATH, 'utf8');
+    return fileContent;
+}
+
+async function switchKubeconfig(newConfigString: string): Promise<string> {
     const newConfig = await loadKubeconfig(newConfigString);
-    const config = await saveKubeconfig(newConfig);
-    return config;
+    await saveKubeconfig(newConfig);
+    return newConfigString;
 }
 
 export async function updateKubeconfig(newConfig: string): Promise<any> {
-
     try {
-        const config = await switchKubeconfig(newConfig);
+        await switchKubeconfig(newConfig);
         console.log('Kubeconfig switched successfully.');
-        return { config };
+        return newConfig;
     } catch (err) {
         console.error('Error:', err);
         return err;
@@ -78,9 +83,9 @@ export async function getNamespacePytorchJobs(namespace?: string): Promise<any> 
         const res: any = await k8sApi.listNamespacedCustomObject(
             'kubeflow.org',
             'v1',
-            namespace||'default',
+            namespace || 'default',
             'pytorchjobs'
-          )
+        )
         console.log('listNamespacedCustomObject', JSON.stringify(res.body));
         return res;
     } catch (err) {
@@ -99,9 +104,9 @@ export async function getNamespaceMPIJobs(namespace?: string): Promise<any> {
         const res: any = await k8sApi.listNamespacedCustomObject(
             'kubeflow.org',
             'v1',
-            namespace||'default',
+            namespace || 'default',
             'mpijobs'
-          )
+        )
         console.log('listNamespacedCustomObject', JSON.stringify(res.body));
         return res;
     } catch (err) {
@@ -193,7 +198,7 @@ export async function createPytorchJob(yamlString: string) {
         const yamlContent = yamlString
 
         // 解析 YAML 内容
-        const pytorchJob = jsyaml.load(yamlContent);
+        const pytorchJob: any = jsyaml.load(yamlContent);
 
         // 创建 Job
         const res = await k8sApi.createNamespacedCustomObject(

@@ -80,6 +80,11 @@ export default {
 
 ## Release Notes
 
+### 0.6.1
+
+- 支持kubectl集群操作
+- 新增2.1.1.5镜像支持
+
 ### 0.5.0 
 
 - add kubectl support
