@@ -10,6 +10,7 @@
           :default-active="menus.defaultActive"
           @select="handleMenuSelect"
           @click="handleMenuClick"
+          :unique-opened="true"
         >
           <template v-for="menu in menus.items" :key="menu.index">
             <el-sub-menu :index="menu.index">
@@ -68,8 +69,21 @@
       </el-header>
 
       <el-main>
+        <el-steps :active="active" align-center style="margin: 20px 0">
+          <el-step title="模型信息" description="选择训练模型、训练方法" />
+          <el-step title="资源配置" description="选择GPU、队列等" />
+          <el-step title="数据源" description="选择数据源、数据集" />
+          <el-step title="高级选项" description="容错、日志持久化、RDMA等" />
+        </el-steps>
+
         <!-- <el-tag type="success">任务信息</el-tag> -->
-        <el-form :model="form" label-width="auto" style="margin: 10px">
+        <el-form
+          v-if="active == 1"
+          :model="form"
+          label-width="auto"
+          style="margin: 10px"
+        >
+          <el-divider border-style="dotted" />
           <el-descriptions title="模型信息" :column="3" size="large" border>
           </el-descriptions>
           <el-row :gutter="48">
@@ -215,6 +229,11 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-form-item>
+            <el-button type="primary" style="margin-top: 12px" @click="next"
+              >下一步</el-button
+            >
+          </el-form-item>
           <el-divider border-style="dashed">
             <el-tag type="success">训练任务参数信息 {{ form.filePath }}</el-tag>
           </el-divider>
@@ -298,26 +317,50 @@
               </el-col>
             </el-row>
           </el-card>
-
-          <!-- <el-form-item>
-            <el-button type="primary" @click="onSubmit">保存</el-button>
-            <el-button>取消</el-button>
-          </el-form-item> -->
         </el-form>
-        <el-divider />
-        <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-descriptions title="资源配置（开发中...）" :column="3" size="large" border>
+
+        <el-form
+          v-if="active == 2"
+          :model="form"
+          label-width="auto"
+          style="margin: 10px"
+        >
+          <el-divider border-style="dotted">
+            <el-tag type="warning">以下开发中，即将上线...</el-tag>
+          </el-divider>
+          <el-descriptions title="资源配置" :column="3" size="large" border>
           </el-descriptions>
+          <el-row :gutter="48">
+            <el-col :span="8">
+              <el-form-item label="实例数">
+                <el-input-number
+                  v-model="trainingParams.replicas"
+                  :min="1"
+                  :max="10"
+                  @change="handleNumChange"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="每实例卡数">
+                <el-input-number
+                  v-model="trainingParams.gpus_per_node"
+                  :min="1"
+                  :max="10"
+                  @change="handleNumChange"
+                />
+              </el-form-item>
+            </el-col>
+          </el-row>
           <el-row :gutter="48">
             <el-col :span="8">
               <el-form-item label="队列">
                 <el-select
-                  v-model="form.version"
+                  v-model="trainingParams.queue"
                   placeholder="选择队列"
-                  :disabled="form.source === '自定义版本'"
                 >
                   <el-option
-                    v-for="item in form.preinstallVersions"
+                    v-for="item in trainingParams.queues"
                     :key="item"
                     :label="item"
                     :value="item"
@@ -328,12 +371,11 @@
             <el-col :span="8">
               <el-form-item label="优先级">
                 <el-select
-                  v-model="form.version"
+                  v-model="trainingParams.priority"
                   placeholder="选择优先级"
-                  :disabled="form.source === '自定义版本'"
                 >
                   <el-option
-                    v-for="item in form.preinstallVersions"
+                    v-for="item in trainingParams.priorities"
                     :key="item"
                     :label="item"
                     :value="item"
@@ -341,17 +383,54 @@
                 </el-select>
               </el-form-item>
             </el-col>
-          </el-row>
-          <el-row :gutter="48">
             <el-col :span="8">
-              <el-form-item label="加速卡类型">
+              <el-form-item label="卡类型">
                 <el-select
-                  v-model="form.version"
+                  v-model="trainingParams.gpu"
                   placeholder="选择加速卡型号"
-                  :disabled="form.source === '自定义版本'"
                 >
                   <el-option
-                    v-for="item in form.preinstallVersions"
+                    v-for="item in trainingParams.gpus"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item>
+            <el-button
+              type="primary"
+              plain
+              style="margin-top: 12px"
+              @click="prev"
+              >上一步</el-button
+            >
+            <el-button type="primary" style="margin-top: 12px" @click="next"
+              >下一步</el-button
+            >
+          </el-form-item>
+        </el-form>
+
+        <el-form
+          v-if="active == 3"
+          :model="form"
+          label-width="auto"
+          style="margin: 10px"
+        >
+          <el-divider border-style="dotted" />
+          <el-descriptions title="数据源" :column="3" size="large" border>
+          </el-descriptions>
+          <el-row :gutter="48">
+            <el-col :span="8">
+              <el-form-item label="数据源类型">
+                <el-select
+                  v-model="trainingParams.datasourceType"
+                  placeholder="选择类型"
+                >
+                  <el-option
+                    v-for="item in trainingParams.datasourceTypes"
                     :key="item"
                     :label="item"
                     :value="item"
@@ -360,29 +439,15 @@
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="实例数">
-                <el-input-number
-                  v-model="num"
-                  :min="1"
-                  :max="10"
-                  @change="handleNumChange"
+              <el-form-item label="名称">
+                <el-input
+                  v-model="trainingParams.datasourceName"
+                  placeholder="PFS时为pfsId"
                 />
               </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="每实例卡数">
-                <el-input-number
-                  v-model="num"
-                  :min="1"
-                  :max="10"
-                  @change="handleNumChange"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-          <el-row :gutter="48">
-            <el-col :span="22">
-              <el-form-item label="PFS挂载路径">
+              <el-form-item label="挂载路径">
                 <el-input
                   v-model="form.name"
                   placeholder="默认路径/mnt/cluster"
@@ -390,24 +455,47 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-form-item>
+            <el-button
+              type="primary"
+              plain
+              style="margin-top: 12px"
+              @click="prev"
+              >上一步</el-button
+            >
+            <el-button type="primary" style="margin-top: 12px" @click="next"
+              >下一步</el-button
+            >
+          </el-form-item>
+        </el-form>
+
+        <el-form
+          v-if="active == 4"
+          :model="form"
+          label-width="auto"
+          style="margin: 10px"
+        >
+          <el-divider border-style="dotted" />
+          <el-descriptions title="高级选项" :column="3" size="large" border>
+          </el-descriptions>
           <el-row :gutter="48">
-            <el-col :span="22">
+            <el-col :span="8">
+              <el-form-item label="RDMA">
+                <el-switch :v-model="true" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
               <el-form-item label="共享内存">
                 <el-input-number
                   v-model="num"
                   :min="1"
                   :max="10"
+                  disabled
                   @change="handleNumChange"
                 />
               </el-form-item>
             </el-col>
           </el-row>
-          <el-form-item label="RDMA">
-            <el-switch :v-model="false" />
-          </el-form-item>
-          <el-divider border-style="dotted" />
-          <el-descriptions title="高级选项" :column="3" size="large" border>
-          </el-descriptions>
           <el-form-item label="容错">
             <el-switch :v-model="false" />
           </el-form-item>
@@ -439,6 +527,24 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-form-item>
+            <!-- <el-button type="primary" disabled>提交任务</el-button>
+            <el-button disabled>重置</el-button> -->
+            <el-button
+              type="primary"
+              plain
+              style="margin-top: 12px"
+              @click="prev"
+              >上一步</el-button
+            >
+            <el-button
+              disabled
+              type="primary"
+              style="margin-top: 12px"
+              @click="next"
+              >提交任务</el-button
+            >
+          </el-form-item>
           <el-divider border-style="dashed">
             <el-tag type="success">yaml配置信息 {{ form.filePath }}</el-tag>
           </el-divider>
@@ -466,10 +572,6 @@
               </el-col>
             </el-row>
           </el-card>
-          <el-form-item>
-            <el-button type="primary" disabled>提交任务</el-button>
-            <el-button disabled>重置</el-button>
-          </el-form-item>
         </el-form>
       </el-main>
     </el-container>
@@ -931,6 +1033,147 @@
       </el-main>
     </el-container>
 
+    <el-container v-else-if="menuName == 'models'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>模型权重</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="form"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- <el-button @click="devmachineAdd" icon="CirclePlus" color="red"
+            >新建</el-button
+          >
+          &nbsp; &nbsp; -->
+          <!-- 刷新 -->
+          <el-button @click="devmachineAdd" icon="Refresh" color="blue"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-table :data="tableData" style="width: 100%">
+          <el-table-column prop="name" label="名称" width="120" />
+          <el-table-column prop="state" label="模型系列" width="120" />
+          <el-table-column prop="city" label="参数量" width="120" />
+          <el-table-column prop="address" label="存储路径" width="240" />
+          <el-table-column prop="date" label="创建日期" width="150" />
+          <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                格式转换
+              </el-button>
+              <el-button link type="primary" size="small">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'datasets'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>数据集</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="form"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- <el-button @click="devmachineAdd" icon="CirclePlus" color="red"
+            >新建</el-button
+          >
+          &nbsp; &nbsp; -->
+          <!-- 刷新 -->
+          <el-button @click="devmachineAdd" icon="Refresh" color="blue"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-table :data="tableData" style="width: 100%">
+          <el-table-column prop="name" label="名称" width="120" />
+          <el-table-column prop="state" label="类型" width="120" />
+          <el-table-column prop="city" label="格式" width="120" />
+          <el-table-column prop="address" label="存储路径" width="240" />
+          <el-table-column prop="date" label="创建日期" width="150" />
+          <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                格式转换
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                预处理
+              </el-button>
+              <el-button link type="primary" size="small">移除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'files'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>文件管理</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="form"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- 点击刷新按钮，刷整个新页面 -->
+          <el-button
+            @click="updatePage"
+            icon="Refresh"
+            color="blue"
+            :loading="updateFilesIsLoading"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-tree v-if="showFiles" :props="filesProps" :load="loadNode" lazy>
+          <template #default="{ node, data }">
+            <span class="custom-tree-node">
+              <span>{{ node.label }}</span>
+              <span>
+                <el-button type="primary" link @click="go2copy(data.name)"
+                  >复制路径</el-button
+                >
+                <el-button type="primary" link @click="go2copy(data.name)">
+                  添加到数据集</el-button
+                >
+              </span>
+            </span>
+          </template>
+        </el-tree>
+      </el-main>
+    </el-container>
+
     <el-container v-else-if="menuName == 'devmachine'">
       <el-header style="text-align: left; font-size: 16px">
         <div class="toolbar">
@@ -994,7 +1237,7 @@
             </template>
           </el-dropdown>
           <span>Tom</span> -->
-          <span>集群操作</span>
+          <span>创建部署</span>
         </div>
       </el-header>
 
@@ -1073,10 +1316,81 @@
               >
                 载入
               </el-button>
-              <el-button link type="primary" size="small">删除</el-button>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                保存为模板
+              </el-button>
+              <!-- <el-button link type="primary" size="small">删除</el-button> -->
             </template>
           </el-table-column>
         </el-table>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'appList'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>预置应用</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-card
+          class="box-card"
+          style="margin-top: 10px; text-align: left"
+          shadow="hover"
+        >
+          <template #header>
+            <div class="card-header">
+              <span>aihc-helper-job-cpu</span>
+              <el-button
+                v-if="cpuPod.status.phase"
+                class="button"
+                type="success"
+                text
+                >{{ cpuPod.status.phase }}</el-button
+              >
+              <el-button v-else class="button" type="primary" text
+                >立即部署</el-button
+              >
+            </div>
+          </template>
+          <div>预置系统CPU Pod，用于读取存储目录、数据处理等自定义任务。</div>
+        </el-card>
+        <el-card
+          class="box-card"
+          style="margin-top: 10px; text-align: left"
+          shadow="hover"
+        >
+          <template #header>
+            <div class="card-header">
+              <span>aihc-helper-job-gpu</span>
+              <el-button class="button" type="primary" text>立即部署</el-button>
+            </div>
+          </template>
+          <div>
+            预置系统AIAK GPU Pod，用于数据预处理、模型转换等自定义任务。
+          </div>
+        </el-card>
+        <el-card
+          class="box-card"
+          style="margin-top: 10px; text-align: left"
+          shadow="hover"
+        >
+          <template #header>
+            <div class="card-header">
+              <span>JuypterLab</span>
+              <el-button class="button" type="primary" text>立即部署</el-button>
+            </div>
+          </template>
+          <div>
+            JuypterLab开发机，在资源池中一键部署，使用Web IDE进行程序开发。
+          </div>
+        </el-card>
       </el-main>
     </el-container>
 
@@ -1123,13 +1437,24 @@
             </template>
           </el-table-column> -->
         </el-table>
+
+        <div
+          v-if="k8sInfo.NodeList.length > 0"
+          class="example-pagination-block"
+        >
+          <el-pagination
+            layout="total, prev, pager, next"
+            :page-size="10"
+            :total="k8sInfo.NodeList.length"
+          />
+        </div>
       </el-main>
     </el-container>
 
     <el-container v-else-if="menuName == 'jobList'">
       <el-header style="text-align: left; font-size: 16px">
         <div class="toolbar">
-          <span>任务列表</span>
+          <span>训练任务</span>
         </div>
       </el-header>
 
@@ -1170,6 +1495,212 @@
             </template>
           </el-table-column> -->
         </el-table>
+
+        <div
+          v-if="k8sInfo.PyTorchJobList.length > 0"
+          class="example-pagination-block"
+        >
+          <el-pagination
+            layout="total, prev, pager, next"
+            :page-size="10"
+            :total="k8sInfo.PyTorchJobList.length"
+          />
+        </div>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'normalJobList'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>普通任务</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="k8sInfo.NormalJobList"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- 刷新 -->
+          <el-button
+            :loading="updateNormalJobListIsLoading"
+            @click="updateNormalJobList"
+            icon="Refresh"
+            color="blue"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-table :data="k8sInfo.NormalJobList" style="width: 100%">
+          <el-table-column prop="name" label="任务名称" />
+          <el-table-column prop="active" label="运行Pod数" />
+          <el-table-column prop="namespace" label="命名空间" />
+          <el-table-column prop="startTime" label="开始时间" />
+          <el-table-column prop="completionTime" label="结束时间" />
+          <el-table-column prop="creationTimestamp" label="创建时间" />
+          <!-- <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                详情
+              </el-button>
+              <el-button link type="primary" size="small">编辑</el-button>
+            </template>
+          </el-table-column> -->
+        </el-table>
+        <div
+          v-if="k8sInfo.NormalJobList.length > 0"
+          class="example-pagination-block"
+        >
+          <el-pagination
+            layout="total, prev, pager, next"
+            :page-size="10"
+            :total="k8sInfo.NormalJobList.length"
+          />
+        </div>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'podList'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>容器组</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="k8sInfo.PodList"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- 刷新 -->
+          <el-button
+            :loading="updatePodListIsLoading"
+            @click="updatePodList"
+            icon="Refresh"
+            color="blue"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-table v-if="false" :data="k8sInfo.PodList" style="width: 100%">
+          <el-table-column prop="name" label="任务名称" />
+          <el-table-column prop="active" label="运行状态" />
+          <el-table-column prop="namespace" label="命名空间" />
+          <el-table-column prop="startTime" label="开始时间" />
+          <!-- <el-table-column prop="completionTime" label="结束时间" /> -->
+          <el-table-column prop="creationTimestamp" label="创建时间" />
+          <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                目录
+              </el-button>
+              <!-- <el-button link type="primary" size="small">编辑</el-button> -->
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <el-table :data="k8sInfo.PodList" style="width: 100%">
+          <el-table-column type="expand">
+            <template #default="props">
+              <div m="4">
+                <p m="t-0 b-2">name: {{ props.row.name }}</p>
+                <p m="t-0 b-2">active: {{ props.row.active }}</p>
+                <p m="t-0 b-2">namespace: {{ props.row.namespace }}</p>
+                <p m="t-0 b-2">startTime: {{ props.row.startTime }}</p>
+                <h3>Family</h3>
+                <el-table :data="props.row.family">
+                  <el-table-column prop="name" label="任务名称" />
+                  <el-table-column prop="active" label="运行状态" />
+                  <el-table-column prop="namespace" label="命名空间" />
+                  <el-table-column prop="startTime" label="开始时间" />
+                  <!-- <el-table-column prop="completionTime" label="结束时间" /> -->
+                  <el-table-column prop="creationTimestamp" label="创建时间" />
+                </el-table>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="name" label="任务名称" />
+          <el-table-column prop="active" label="运行状态" />
+          <el-table-column prop="namespace" label="命名空间" />
+          <el-table-column prop="startTime" label="开始时间" />
+          <!-- <el-table-column prop="completionTime" label="结束时间" /> -->
+          <el-table-column prop="creationTimestamp" label="创建时间" />
+        </el-table>
+
+        <div v-if="k8sInfo.PodList.length > 0" class="example-pagination-block">
+          <el-pagination
+            layout="total, prev, pager, next"
+            :page-size="10"
+            :total="k8sInfo.PodList.length"
+          />
+        </div>
+      </el-main>
+    </el-container>
+
+    <el-container v-else-if="menuName == 'namespaceList'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>命名空间</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-form
+          :model="k8sInfo.NamespaceList"
+          label-width="auto"
+          style="margin: 10px 0px 10px 0px; text-align: left"
+        >
+          <!-- 刷新 -->
+          <el-button
+            :loading="updateNamespaceListIsLoading"
+            @click="updateNamespaceList"
+            icon="Refresh"
+            color="blue"
+            >刷新</el-button
+          >
+        </el-form>
+
+        <el-table :data="k8sInfo.NamespaceList" style="width: 100%">
+          <el-table-column prop="name" label="名称" />
+          <el-table-column prop="active" label="状态" />
+          <el-table-column prop="tags" label="标签" />
+          <el-table-column prop="creationTimestamp" label="创建时间" />
+          <!-- <el-table-column fixed="right" label="操作" min-width="120">
+            <template #default>
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleClickAction"
+              >
+                详情
+              </el-button>
+              <el-button link type="primary" size="small">编辑</el-button>
+            </template>
+          </el-table-column> -->
+        </el-table>
+        <div
+          v-if="k8sInfo.NamespaceList.length > 0"
+          class="example-pagination-block"
+        >
+          <el-pagination
+            layout="total, prev, pager, next"
+            :page-size="10"
+            :total="k8sInfo.NamespaceList.length"
+          />
+        </div>
       </el-main>
     </el-container>
 
@@ -1237,37 +1768,64 @@
       </el-header>
 
       <el-main>
-        <!-- <el-tag type="success">任务信息</el-tag> -->
-
-        <el-form :model="form" label-width="auto" style="margin: 10px">
-          <el-form-item label="Access Key">
-            <el-input
-              v-model="k8sRecord.command"
-              type="textarea"
-              rows="3"
-              placeholder="输入百度云Access Key"
-            />
-          </el-form-item>
-
-          <el-form-item label="Secret Key">
-            <el-input
-              v-model="k8sRecord.command"
-              type="textarea"
-              rows="3"
-              placeholder="输入百度云Secret Key"
-            />
-          </el-form-item>
-
-          <el-row :gutter="48">
-            <el-col :span="24">
-              <!-- <el-button type="primary" @click="onSubmit">保存</el-button> -->
-              <el-button color="red" @click="handlek8s" disabled>更新</el-button>
-            </el-col>
-          </el-row>
-        </el-form>
+        <el-descriptions class="margin-top" :column="1" size="default" border>
+          <!-- <template #extra>
+            <el-button type="primary">从云端下载</el-button>
+            <el-button type="success">立即备份</el-button>
+          </template> -->
+          <el-descriptions-item label="百度云">
+            <div>access_key:AIHC-HELPER-KEY</div>
+            <div>secret_key:AIHC-HELPER-SECRET</div>
+            <el-button type="primary" link>更改</el-button>
+          </el-descriptions-item>
+          <el-descriptions-item label="OpenAI Key">
+            <div>endpoint:https://openai.com/api/v1/</div>
+            <div>secret_key:xxx-xxx-xxx</div>
+            <el-button type="primary" link>更改</el-button>
+          </el-descriptions-item>
+        </el-descriptions>
       </el-main>
     </el-container>
 
+    <el-container v-else-if="menuName == 'backup1'">
+      <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>备份与恢复</span>
+        </div>
+      </el-header>
+
+      <el-main>
+        <el-descriptions class="margin-top" :column="1" size="default" border>
+          <!-- <template #extra>
+            <el-button type="primary">从云端下载</el-button>
+            <el-button type="success">立即备份</el-button>
+          </template> -->
+          <el-descriptions-item label="系统目录">
+            <div>/user/system/</div>
+            <el-button type="primary" link>查看</el-button>
+          </el-descriptions-item>
+          <el-descriptions-item label="工作目录">
+            <div>/user/choo/</div>
+            <el-button type="primary" link>更改</el-button>
+          </el-descriptions-item>
+          <el-descriptions-item label="S3存储桶">
+            <div>
+              endpoint:https://aihc-helper.s3.cn-north-1.jdcloud-oss.com
+            </div>
+            <div>access_key:AIHC-HELPER-KEY</div>
+            <div>secret_key:AIHC-HELPER-SECRET</div>
+            <div>region:cn-north-1</div>
+            <div>bucket:aihc-helper</div>
+            <el-button type="primary" link>更改</el-button>
+          </el-descriptions-item>
+          <el-descriptions-item label="备份与恢复">
+            <el-button type="primary">从云端下载</el-button>
+            <el-button type="success">备份到云端</el-button>
+          </el-descriptions-item>
+        </el-descriptions>
+      </el-main>
+    </el-container>
+    <Backup v-else-if="menuName == 'backup'" />
     <el-container v-else>
       <!-- <el-header style="text-align: left; font-size: 16px">
         <div class="toolbar">
@@ -1285,8 +1843,18 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 // import { Menu as IconMenu, Message, Setting } from "@element-plus/icons-vue";
+import CheckboxGroup from "./CheckboxGroup.vue";
+import Backup from "../setting/backup.vue";
 import { reactive } from "vue";
-import { TrainingModel, MenusInstance, DefaultRecord } from "./types.js";
+import {
+  TrainingModel,
+  MenusInstance,
+  DefaultRecord,
+  DefaultTrainingParams,
+  tableData,
+  k8sActions,
+  k8sActionsData,
+} from "./types.js";
 // import { genFileId } from "element-plus";
 import {
   UploadInstance,
@@ -1297,149 +1865,98 @@ import {
 
 import { yamlCreate } from "./yamlCreate.js";
 import { dataBox } from "js-tool-big-box";
-import { ElLoading } from "element-plus";
+// import { ElLoading } from "element-plus";
+
+import type Node from "element-plus/es/components/tree/src/model/node";
 
 defineProps<{ msg: string }>();
 
-const num = ref(1);
+/*树形结构数据*/
+interface Tree {
+  name: string;
+  leaf?: boolean;
+}
+
+const filesProps = {
+  label: "name",
+  children: "zones",
+  isLeaf: "leaf",
+};
+
+const cpuPod = ref({ status: { phase: "" }, metadata: { name: "" } });
+
+const curNode = ref<Node | null>(null);
+const curResolve = ref<((data: Tree[]) => void) | null>(null);
+
+const loadNode = (node: Node, resolve: (data: Tree[]) => void) => {
+  // console.log("node", node);
+  curNode.value = node;
+  curResolve.value = resolve;
+  if (node.level === 0) {
+    updateFiles("/");
+  } else {
+    updateFiles(node.data.name);
+  }
+  updateFilesIsLoading.value = true;
+};
+
+const setFiles = (params: any) => {
+  // console.log("setFiles", params);
+  const files = params.files;
+  const parent = params.parent;
+
+  const node = curNode.value;
+  const resolve = curResolve.value;
+
+  if (node && resolve) {
+    const data: Tree[] = files.map((item: any) => {
+      return {
+        name: node.level === 0 ? parent + item.name : parent + "/" + item.name,
+        leaf: item.type !== "directory",
+      };
+    });
+    updateFilesIsLoading.value = false;
+    return resolve(data);
+  }
+};
+
+const showFiles = ref(true);
+const updatePage = () => {
+  showFiles.value = false;
+  setTimeout(() => {
+    showFiles.value = true;
+  }, 100);
+};
+
+/*s树形结构数据*/
+
+const active = ref(1);
+const next = () => {
+  if (active.value++ === 4) {
+    active.value = 4;
+  }
+  console.log(active.value);
+};
+
+const prev = () => {
+  if (active.value-- === 1) {
+    active.value = 1;
+  }
+  console.log(active.value);
+};
+
+const num = ref(10);
 const handleNumChange = (value: number) => {
   console.log(value);
 };
 
-const handleClickAction = () => {
-  console.log("click");
+const handleClickAction = (value: any) => {
+  console.log("click", value);
 };
 
 const devmachineAdd = () => {
   console.log("add");
 };
-
-const tableData = [
-  {
-    date: "2016-05-03",
-    name: "Tom",
-    state: "California",
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Home",
-  },
-  {
-    date: "2016-05-02",
-    name: "Tom",
-    state: "California",
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Office",
-  },
-  {
-    date: "2016-05-04",
-    name: "Tom",
-    state: "California",
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Home",
-  },
-  {
-    date: "2016-05-01",
-    name: "Tom",
-    state: "California",
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Office",
-  },
-];
-
-const k8sActions = [
-  {
-    id: 4,
-    action: "创建PytorchJob",
-    res: "",
-    command: "",
-    placeholder: "输入PytorchJob yaml",
-    log: "",
-    config: "",
-  },
-  {
-    id: 3,
-    action: "创建Job",
-    res: "",
-    command: "",
-    placeholder: "输入Job yaml",
-    log: "",
-    config: "",
-  },
-  {
-    id: 2,
-    action: "创建Deployment",
-    res: "",
-    command: "",
-    placeholder: "输入Deployment yaml",
-    log: "",
-    config: "",
-  },
-  {
-    id: 0,
-    action: "获取节点列表",
-    res: "",
-    command: "",
-    log: "",
-    config: "",
-  },
-  {
-    id: 1,
-    action: "获取PytorchJob列表",
-    res: "",
-    command: "",
-    log: "",
-    config: "",
-  },
-];
-
-const k8sActionsData = [
-  {
-    date: "2016-05-02 15:00",
-    name: "创建Job",
-    state: `apiVersion: v1
-data:
-  launch.sh: |-
-    #! /bin/bash
-    `,
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Office",
-  },
-  {
-    date: "2016-05-04 15:00",
-    name: "创建Job",
-    state: `apiVersion: v1
-data:
-  launch.sh: |-
-    #! /bin/bash
-    `,
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Home",
-  },
-  {
-    date: "2016-05-03 15:00",
-    name: "创建Deployment",
-    state: `apiVersion: v1
-data:
-  launch.sh: |-
-    #! /bin/bash
-    `,
-    city: "Los Angeles",
-    address: "No. 189, Grove St, Los Angeles",
-    zip: "CA 90036",
-    tag: "Home",
-  },
-];
 
 let k8sRecord = reactive(JSON.parse(JSON.stringify(k8sActions[0])));
 
@@ -1450,13 +1967,14 @@ const handleActionChange = (val: string) => {
   // console.log("records", JSON.stringify(record, null, 2));
   k8sRecord.action = record.action;
   k8sRecord.placeholder = record.placeholder || "";
-  k8sRecord.command = "";
+  k8sRecord.command = record.command;
   // console.log("k8sRecord after", JSON.stringify(k8sRecord, null, 2));
 };
 
 const upload = ref<UploadInstance>();
 
 const record: TrainingModel = JSON.parse(JSON.stringify(DefaultRecord));
+const trainingParams = reactive(DefaultTrainingParams);
 
 const menus = ref(MenusInstance);
 
@@ -1468,13 +1986,21 @@ const form = reactive(record);
 const k8sInfo = reactive({
   NodeList: [],
   PyTorchJobList: [],
+  NormalJobList: [],
+  PodList: [],
+  NamespaceList: [],
 });
 
 const updateNodeListIsLoading = ref(false);
 const updatePyTorchJobListIsLoading = ref(false);
+const updateNormalJobListIsLoading = ref(false);
+const updatePodListIsLoading = ref(false);
+const updateFilesIsLoading = ref(false);
+const updateNamespaceListIsLoading = ref(false);
 
 // 初始化时载入updateKubeconfig
 send2ipc("updateKubeconfig", "");
+send2ipc("getSystemPod", "");
 
 // 执行k8s命令
 function handlek8s() {
@@ -1496,6 +2022,22 @@ const updatek8sConfig = (k8sconfig: string) => {
   send2ipc("updateKubeconfig", k8sRecord.config);
 };
 
+const updateNamespaceList = () => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+  if (updateNamespaceListIsLoading.value) {
+    return;
+  }
+  updateNamespaceListIsLoading.value = true;
+  // 计时60s，超时则重置loading
+  setTimeout(() => {
+    updateNamespaceListIsLoading.value = false;
+  }, 60000);
+  send2ipc("getNamespaceList", "");
+};
+
 const updateNodeList = () => {
   if (k8sRecord.config === "") {
     ElMessage.error("请先更新Kubeconfig");
@@ -1515,8 +2057,7 @@ const updateNodeList = () => {
   }, 60000);
 
   // 请求中
-  handleActionChange("获取节点列表");
-  handlek8s();
+  send2ipc("listNodes", "");
 };
 
 const updatePyTorchJobList = () => {
@@ -1532,8 +2073,55 @@ const updatePyTorchJobList = () => {
   setTimeout(() => {
     updatePyTorchJobListIsLoading.value = false;
   }, 60000);
-  handleActionChange("获取PytorchJob列表");
-  handlek8s();
+  send2ipc("getPytorchJobList", "");
+};
+
+const updateNormalJobList = () => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+  if (updateNormalJobListIsLoading.value) {
+    return;
+  }
+  updateNormalJobListIsLoading.value = true;
+  // 计时60s，超时则重置loading
+  setTimeout(() => {
+    updateNormalJobListIsLoading.value = false;
+  }, 60000);
+  send2ipc("getNormalJobList", "");
+};
+
+const updatePodList = () => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+  if (updatePodListIsLoading.value) {
+    return;
+  }
+  updatePodListIsLoading.value = true;
+  // 计时60s，超时则重置loading
+  setTimeout(() => {
+    updatePodListIsLoading.value = false;
+  }, 60000);
+  send2ipc("getNamespacePods", "default");
+};
+
+const updateFiles = (path = "/") => {
+  if (k8sRecord.config === "") {
+    ElMessage.error("请先更新Kubeconfig");
+    return;
+  }
+  if (updateFilesIsLoading.value) {
+    return;
+  }
+  updateFilesIsLoading.value = true;
+  // 计时60s，超时则重置loading
+  setTimeout(() => {
+    updateFilesIsLoading.value = false;
+  }, 60000);
+  send2ipc("updateFiles", { podName: cpuPod.value.metadata.name, path });
 };
 
 // 切换菜单
@@ -1546,9 +2134,26 @@ function handleMenuSelect(index: string) {
   if (index === "jobList" && k8sInfo.PyTorchJobList.length === 0) {
     updatePyTorchJobList();
   }
+
+  if (index === "normalJobList" && k8sInfo.NormalJobList.length === 0) {
+    updateNormalJobList();
+  }
+
   if (index === "nodeList" && k8sInfo.NodeList.length === 0) {
     updateNodeList();
   }
+
+  if (index === "namespaceList" && k8sInfo.NamespaceList.length === 0) {
+    updateNamespaceList();
+  }
+
+  if (index === "podList" && k8sInfo.PodList.length === 0) {
+    updatePodList();
+  }
+
+  // if (index === "files") {
+  //   updateFiles();
+  // }
 
   if (index === "k8sconfig") {
     send2ipc("updateKubeconfig", "");
@@ -1564,8 +2169,8 @@ function handleMenuClick(item: any) {
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
   // console.log("[Receive send2web]:", ...args);
   const { method, params } = JSON.parse(args[0]);
-  console.log("method", method);
-  console.log("params", params);
+  // console.log("method", method);
+  // console.log("params", params);
 
   switch (method) {
     case "getPreinstallVersions":
@@ -1587,61 +2192,151 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
       form.infos = params;
       setModelFamilies(params);
       break;
+    case "execCommandInPod": {
+      console.log("execCommandInPod webside", params);
+      k8sRecord.res = JSON.stringify(params, null, 2);
+      k8sRecord.log += params.command + "\n";
+      if (params.stdout) {
+        k8sRecord.log += "success:" + params.stdout + "\n";
+      } else {
+        k8sRecord.log += "error:" + params.stderr + "\n";
+      }
+      break;
+    }
+    case "getSystemPod": {
+      // console.log("getSystemPod", params);
+      cpuPod.value = params;
+      // console.log("cpuPod", cpuPod.value);
+      break;
+    }
+    case "listNodes": {
+      const names = params.response.body.items.map((item: any) => {
+        // console.log("item", item);
+        return {
+          name: item.metadata.name,
+          creationTimestamp: item.metadata.creationTimestamp,
+          uid: item.metadata.uid,
+          osImage: item.status.nodeInfo.osImage,
+          architecture: item.status.nodeInfo.architecture,
+        };
+      });
+      names.sort((a: any, b: any) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
+      k8sInfo.NodeList = names;
+      ElMessage.success("更新成功");
+      updateNodeListIsLoading.value = false;
+
+      break;
+    }
+    case "getNamespaceList": {
+      const names = params.response.body.items.map((item: any) => {
+        // console.log("item", item);
+        let tags: any[] = [];
+        if (item.metadata.labels) {
+          tags = Object.keys(item.metadata.labels).map((label: any) => {
+            return label + ":" + item.metadata.labels[label];
+          });
+        }
+        return {
+          name: item.metadata.name,
+          creationTimestamp: item.metadata.creationTimestamp,
+          active: item.status.phase,
+          tags: tags.join("\n"),
+        };
+      });
+      names.sort((a: any, b: any) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
+      k8sInfo.NamespaceList = names;
+      ElMessage.success("更新成功");
+      updateNamespaceListIsLoading.value = false;
+      break;
+    }
+    case "getNamespacePods": {
+      const names = params.response.body.items.map((item: any) => {
+        // console.log("item", item);
+        return {
+          name: item.metadata.name,
+          creationTimestamp: item.metadata.creationTimestamp,
+          active: item.status.phase || "--",
+          uid: item.metadata.uid,
+          namespace: item.metadata.namespace,
+          startTime: item.status.startTime,
+          completionTime: item.status.completionTime || "--",
+        };
+      });
+      names.sort((a: any, b: any) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
+      if (params.response.body.kind === "PodList") {
+        const namesNew = names.filter(
+          (item: any) =>
+            item.active === "Running" ||
+            item.name.includes("aihc-helper-job-cpu")
+        );
+        k8sInfo.PodList = namesNew;
+        ElMessage.success("更新成功");
+        updatePodListIsLoading.value = false;
+      }
+      break;
+    }
+    case "updateFiles": {
+      setFiles(params);
+      break;
+    }
+    case "getNormalJobList": {
+      // console.log("params.response.body", params.response.body.items[0]);
+      const names = params.response.body.items.map((item: any) => {
+        // console.log("item", item);
+        return {
+          name: item.metadata.name,
+          creationTimestamp: item.metadata.creationTimestamp,
+          active: item.status.active || "0",
+          uid: item.metadata.uid,
+          namespace: item.metadata.namespace,
+          startTime: item.status.startTime,
+          completionTime: item.status.completionTime || "--",
+        };
+      });
+      names.sort((a: any, b: any) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
+      k8sInfo.NormalJobList = names;
+      ElMessage.success("更新成功");
+      updateNormalJobListIsLoading.value = false;
+
+      break;
+    }
+    case "getPytorchJobList": {
+      // console.log("params.response.body", params.response.body.items[0]);
+      const names = params.response.body.items.map((item: any) => {
+        // console.log("item", item);
+        return {
+          name: item.metadata.name,
+          creationTimestamp: item.metadata.creationTimestamp,
+          kind: item.kind,
+          uid: item.metadata.uid,
+          namespace: item.metadata.namespace,
+          startTime: item.status.startTime,
+          completionTime: item.status.completionTime,
+        };
+      });
+      names.sort((a: any, b: any) => {
+        return new Date(b.time).getTime() - new Date(a.time).getTime();
+      });
+      k8sInfo.PyTorchJobList = names;
+      ElMessage.success("更新成功");
+      updatePyTorchJobListIsLoading.value = false;
+
+      break;
+    }
     case "k8s":
       k8sRecord.res = JSON.stringify(params, null, 2);
-
-      if (
-        params.response &&
-        params.response.body &&
-        params.response.body.items
-      ) {
-        console.log("params.response.body", params.response.body.items[0]);
-        const names = params.response.body.items.map((item: any) => {
-          if (params.response.body.kind === "NodeList") {
-            return {
-              name: item.metadata.name,
-              creationTimestamp: item.metadata.creationTimestamp,
-              uid: item.metadata.uid,
-              osImage: item.status.nodeInfo.osImage,
-              architecture: item.status.nodeInfo.architecture,
-            };
-          } else if (params.response.body.kind === "PyTorchJobList") {
-            return {
-              name: item.metadata.name,
-              creationTimestamp: item.metadata.creationTimestamp,
-              kind: item.kind,
-              uid: item.metadata.uid,
-              namespace: item.metadata.namespace,
-              startTime: item.status.startTime,
-              completionTime: item.status.completionTime,
-            };
-          } else {
-            return {
-              name: item.metadata.name,
-              creationTimestamp: item.metadata.creationTimestamp,
-              kind: item.kind,
-            };
-          }
-        });
-        names.sort((a: any, b: any) => {
-          return new Date(b.time).getTime() - new Date(a.time).getTime();
-        });
-        k8sRecord.res = JSON.stringify(names, null, 2);
-        if (params.response.body.kind === "NodeList") {
-          k8sInfo.NodeList = names;
-          ElMessage.success("更新成功");
-          updateNodeListIsLoading.value = false;
-        }
-        if (params.response.body.kind === "PyTorchJobList") {
-          k8sInfo.PyTorchJobList = names;
-          ElMessage.success("更新成功");
-          updatePyTorchJobListIsLoading.value = false;
-        }
-      }
       break;
     case "updateKubeconfig":
       ElMessage.success("Kubeconfig更新成功");
-      console.log("updateKubeconfig k8sRecord.config", params);
+      // console.log("updateKubeconfig k8sRecord.config", params);
       k8sRecord.config = params;
       break;
     case "initError":
@@ -2088,5 +2783,48 @@ const go2copy = (text: string) => {
 }
 .el-header {
   border-radius: 3px;
+}
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+}
+.example-pagination-block {
+  margin-top: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text {
+  font-size: 14px;
+}
+
+.item {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+/* .box-card {
+  width: 480px;
+} */
+
+.margin-top {
+  margin-top: 10px;
+}
+.margin-bottom {
+  margin-bottom: 10px;
+}
+.margin-left {
+  margin-left: 10px;
+}
+.margin-right {
+  margin-right: 10px;
 }
 </style>

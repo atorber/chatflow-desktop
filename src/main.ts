@@ -5,6 +5,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
+import { store, key } from './store/index.js'
 
 import './style.css'
 
@@ -13,6 +14,7 @@ import './demos/ipc'
 // import './demos/node'
 
 const app = createApp(App)
+app.use(store as unknown as Plugin, key);
 // 全局注册所有图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)

@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
-    "types": ["js-tool-big-box"],
+    "types": ["js-tool-big-box", "vuex"],
     "noEmit": true,
     "typeRoots": ["./node_modules/@types", "./src/types", "./node_modules/element-plus"]
   },

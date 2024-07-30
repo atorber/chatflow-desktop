@@ -1,3 +1,5 @@
+import { fa } from "element-plus/es/locale";
+
 export interface TrainingModel {
   name: string;
   version: string;
@@ -65,7 +67,7 @@ export const MenusInstance: MenusInstance = {
   items: [
     {
       index: "1",
-      title: "训练加速",
+      title: "训练",
       icon: "Cellphone",
       items: [
         {
@@ -79,6 +81,10 @@ export const MenusInstance: MenusInstance = {
         {
           index: "convert",
           title: "模型转换"
+        },
+        {
+          index: "trainingTemplate",
+          title: "训练模板"
         },
         // {
         //   index: "1-4",
@@ -97,6 +103,29 @@ export const MenusInstance: MenusInstance = {
         //   ]
         // }
       ]
+    },
+    {
+      index: "2",
+      title: "数据资产",
+      icon: "Folder",
+      items: [
+        {
+          index: "models",
+          title: "模型"
+        },
+        {
+          index: "datasets",
+          title: "数据集"
+        },
+        {
+          index: "files",
+          title: "文件存储"
+        },
+        {
+          index: "datasource",
+          title: "数据来源"
+        },
+      ],
     },
     // {
     //   index: "2",
@@ -123,21 +152,29 @@ export const MenusInstance: MenusInstance = {
           title: "创建部署"
         },
         {
-          index: "jobList",
-          title: "任务列表"
+          index: "appList",
+          title: "预置应用"
         },
-        // {
-        //   index: "info",
-        //   title: "基本信息"
-        // },
+        {
+          index: "jobList",
+          title: "训练任务"
+        },
+        {
+          index: "normalJobList",
+          title: "普通任务"
+        },
+        {
+          index: "podList",
+          title: "容器组"
+        },
+        {
+          index: "namespaceList",
+          title: "命名空间"
+        },
         {
           index: "nodeList",
           title: "节点列表"
         },
-        // {
-        //   index: "namespace",
-        //   title: "命名空间"
-        // },
       ],
       // subMenus: [
       //   {
@@ -162,9 +199,13 @@ export const MenusInstance: MenusInstance = {
           title: "集群凭证"
         },
         {
+          index: "backup",
+          title: "备份与恢复"
+        },
+        {
           index: "aksk",
           title: "账号密钥"
-        }
+        },
       ]
     }
   ]
@@ -200,3 +241,134 @@ export const DefaultRecord: TrainingModel = {
   envs: '',
   yaml: ""
 };
+
+export const DefaultTrainingParams = {
+  gpu: 'baidu.com/a800_80g_cgpu',
+  gpus_per_node: 8,
+  replicas: 1,
+  enableRDMA: false,
+  mountPath: '/mnt/cluster',
+  datasourceName: 'pfs-xx',
+  datasourceType: 'pfs',
+  queue: 'default',
+  jobFramework: 'PyTorchJob',
+  faultTolerance: false,
+  priority: 'high',
+  datasource: '',
+  queues: ['default'],
+  jobFrameworks: ['PyTorchJob'],
+  priorities: ['high', 'normal', 'low'],
+  datasourceTypes: ['pfs', 'hostPath'],
+  gpus: ['baidu.com/a800_80g_cgpu'],
+}
+
+export const tableData = [
+  {
+    date: "2016-05-03",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-02",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+  {
+    date: "2016-05-04",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-01",
+    name: "Tom",
+    state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+];
+
+export const k8sActions = [
+  {
+    id: 4,
+    action: "创建PytorchJob",
+    res: "",
+    command: "",
+    placeholder: "输入PytorchJob yaml",
+    log: "",
+    config: "",
+  },
+  {
+    id: 3,
+    action: "创建Job",
+    res: "",
+    command: "",
+    placeholder: "输入Job yaml",
+    log: "",
+    config: "",
+  },
+  {
+    id: 2,
+    action: "创建Deployment",
+    res: "",
+    command: "",
+    placeholder: "输入Deployment yaml",
+    log: "",
+    config: "",
+  },
+];
+
+export const k8sActionsData = [
+  {
+    date: "2016-05-02 15:00",
+    name: "创建Job",
+    state: `apiVersion: v1
+data:
+  launch.sh: |-
+    #! /bin/bash
+    `,
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+  {
+    date: "2016-05-04 15:00",
+    name: "创建Job",
+    state: `apiVersion: v1
+data:
+  launch.sh: |-
+    #! /bin/bash
+    `,
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-03 15:00",
+    name: "创建Deployment",
+    state: `apiVersion: v1
+data:
+  launch.sh: |-
+    #! /bin/bash
+    `,
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+];

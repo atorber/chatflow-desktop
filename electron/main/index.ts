@@ -10,7 +10,8 @@ import {
   extractFile
 } from './update'
 
-import { updateKubeconfig, getNamespacePods, getNamespacePytorchJobs, listNodes, createDeployment, createJob, createPytorchJob, getKubeconfig } from './kubectl.js'
+import { updateKubeconfig, getNamespacePods, getNamespacePytorchJobs, getNamespaceJobs, listNodes, createDeployment, createJob, createPytorchJob, getKubeconfig, execCommandInPod, listPodFiles } from './kubectl.js'
+import * as k8sApi from './kubectl.js'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
@@ -253,7 +254,7 @@ async function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(createWindow).catch(err => console.error(err))
 
 app.on('window-all-closed', () => {
   win = null
@@ -278,7 +279,7 @@ app.on('activate', () => {
 })
 
 ipcMain.on("createTraining", async (event, data) => {
-  console.log('createTraining on:', data)
+  // console.log('createTraining on:', data)
 
   const payload = JSON.parse(data)
   const method = payload.method
@@ -296,16 +297,9 @@ ipcMain.on("createTraining", async (event, data) => {
       send2web('listFiles', listFiles(examplesPath))
       break
     }
-    case 'listFiles': {
-      const version = params
-      const examplesPath = version.indexOf('examples') > 0 ? path.dirname(version) : path.join(dataDir, version, 'examples')
-      console.log('examplesPath:', examplesPath)
-      send2web('listFiles', listFiles(examplesPath))
-      break
-    }
     // 更新kubeconfig
     case 'updateKubeconfig': {
-      console.log('updateKubeconfig:', params)
+      // console.log('updateKubeconfig:', params)
       if (params) {
         const res = await updateKubeconfig(params)
         if (res) {
@@ -316,7 +310,7 @@ ipcMain.on("createTraining", async (event, data) => {
       } else {
         try {
           const res = await getKubeconfig()
-          console.log('getKubeconfig:', res)
+          // console.log('getKubeconfig:', res)
           send2web('updateKubeconfig', res)
         } catch (error) {
           send2web('updateKubeconfig', 'Kubeconfig not found')
@@ -325,13 +319,25 @@ ipcMain.on("createTraining", async (event, data) => {
       break
     }
     case 'getNamespacePods': {
-      const res = await getNamespacePods()
+      const res = await getNamespacePods('default')
       send2web('getNamespacePods', res)
       break
     }
     case 'listNodes': {
       const res = await listNodes()
       send2web('listNodes', res)
+      break
+    }
+    case "getNamespaceList":{
+      const res = await k8sApi.listNamespaces()
+      send2web('getNamespaceList', res)
+      break
+    }
+    case 'listFiles': {
+      const version = params
+      const examplesPath = version.indexOf('examples') > 0 ? path.dirname(version) : path.join(dataDir, version, 'examples')
+      console.log('examplesPath:', examplesPath)
+      send2web('listFiles', listFiles(examplesPath))
       break
     }
     case 'createDeployment': {
@@ -344,14 +350,38 @@ ipcMain.on("createTraining", async (event, data) => {
       send2web('createJob', res)
       break
     }
+    case 'execCommandInPod': {
+      const res = await execCommandInPod(params.namespace, params.podName, params.containerName, params.command)
+      // console.log('execCommandInPod:', res)
+      send2web('execCommandInPod', res)
+      break
+    }
+    case 'getSystemPod': {
+      const res = await k8sApi.getSystemPod()
+      send2web('getSystemPod', res)
+      break
+    }
+    case "updateFiles": {
+      // params.namespace = 'default'
+      // params.podName = 'aihc-helper-job-cpu-rs4c4'
+      // params.containerName = 'example-container'
+      // const res = await listPodFiles(params.namespace, params.podName, params.containerName, params.command, undefined)
+      const res = await k8sApi.listPodFilesInMasterContainer(params.podName, params.path)
+      console.log('execCommandInPod ipc:', res)
+      send2web('updateFiles', res)
+      break
+    }
+    case "getNormalJobList": {
+      const res1 = await getNamespaceJobs()
+      send2web('getNormalJobList', res1)
+      break
+    }
+    case "getPytorchJobList": {
+      const res1 = await getNamespacePytorchJobs()
+      send2web('getPytorchJobList', res1)
+      break
+    }
     case 'k8s': {
-      // const res = await updateKubeconfig('/Users/luyuchao/Documents/GitHub/electron-vite-vue/electron/main/kubectl-hwl.conf')
-
-      // if (res) {
-      //   send2web('updateKubeconfig', res)
-      // } else {
-      //   send2web('updateKubeconfig', 'updateKubeconfig failed')
-      // }
 
       if (params.action === '创建PytorchJob') {
         const res1 = await createPytorchJob(params.command)
@@ -362,12 +392,6 @@ ipcMain.on("createTraining", async (event, data) => {
 
       } else if (params.action === '创建Deployment') {
         const res1 = await createDeployment(params.command)
-        send2web('k8s', res1)
-      } else if (params.action === '获取节点列表') {
-        const res1 = await listNodes()
-        send2web('k8s', res1)
-      } else if (params.action === '获取PytorchJob列表') {
-        const res1 = await getNamespacePytorchJobs()
         send2web('k8s', res1)
       } else {
         send2web('k8s', 'action failed')

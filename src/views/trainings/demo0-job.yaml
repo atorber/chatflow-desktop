@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aihc-helper-job-cpu
+spec:
+  template:
+    metadata:
+      name: aihc-helper-job-cpu
+    spec:
+      containers:
+      - name: master
+        image: registry.cn-hangzhou.aliyuncs.com/acs-sample/alpine
+        command: ["sh", "-c", "echo Hello, Kubernetes Job! && sleep 30000000000"]
+        volumeMounts:
+         - name: data
+           mountPath: /mnt/cluster
+      restartPolicy: Never
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pvc-pfs
+  backoffLimit: 4
