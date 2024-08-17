@@ -13,7 +13,11 @@
     "skipLibCheck": true,
     "types": ["js-tool-big-box", "vuex"],
     "noEmit": true,
-    "typeRoots": ["./node_modules/@types", "./src/types", "./node_modules/element-plus"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types",
+      "./node_modules/element-plus"
+    ]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

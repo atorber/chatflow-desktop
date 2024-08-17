@@ -1,70 +1,3 @@
-<script setup lang="ts">
-import { ref } from "vue";
-
-defineProps<{ msg: string }>();
-
-// const count = ref(0);
-const testMsg = ref("...");
-const errorInfo = ref("");
-const isReady = ref(false);
-const qrUrl = ref("");
-const info = ref({
-  username: "",
-  password: "",
-  endpoint: "https://chat.vlist.cc",
-  puppet: "wechaty-puppet-wechat4u",
-  token: "",
-  adminRoom: "",
-});
-const startBot = () => {
-  // 如果info齐全，调用electron中的start-bot
-  if (!isReady.value) {
-    errorInfo.value = "请填写完整信息";
-    return;
-  } else {
-    window.ipcRenderer.send("start-bot");
-  }
-};
-
-const getConfig = () => {
-    window.ipcRenderer.send("get-config")
-};
-
-window.ipcRenderer.on("action-result", (_event: any, ...args: string[]) => {
-  console.log("[Receive action-result]:", ...args);
-  testMsg.value = args[0];
-});
-
-window.ipcRenderer.on("init", (_event: any, ...args: string[]) => {
-  console.log("[Receive init]:", ...args);
-  info.value = JSON.parse(args[0]);
-});
-
-window.ipcRenderer.on("qrcode-result", (_event: any, ...args: string[]) => {
-  console.log("[Receive qrcode-result]:", ...args);
-  qrUrl.value = args[0];
-});
-
-const start = (infos: any) => {
-  errorInfo.value = "";
-  console.log("start", JSON.stringify(infos));
-  // 如果字段不全则界面提示，否则调用electron中的start-test
-  if (
-    infos.username === "" ||
-    infos.password === "" ||
-    infos.endpoint === "" ||
-    infos.puppet === "" ||
-    infos.adminRoom === ""
-  ) {
-    errorInfo.value = "请填写完整信息";
-    isReady.value = false;
-  } else {
-    isReady.value = true;
-    window.ipcRenderer.send("start-test", JSON.stringify(info.value));
-  }
-};
-</script>
-
 <template>
   <!-- <h1>{{ msg }}</h1> -->
   <!-- 三个输入框，用户名、密码、接入地址，点击提交按钮时调用start方法,提交以上三个字段得值 -->
@@ -150,6 +83,73 @@ const start = (infos: any) => {
   </p>
   <!-- <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p> -->
 </template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+
+defineProps<{ msg: string }>();
+
+// const count = ref(0);
+const testMsg = ref("...");
+const errorInfo = ref("");
+const isReady = ref(false);
+const qrUrl = ref("");
+const info = ref({
+  username: "",
+  password: "",
+  endpoint: "https://chat.vlist.cc",
+  puppet: "wechaty-puppet-wechat4u",
+  token: "",
+  adminRoom: "",
+});
+const startBot = () => {
+  // 如果info齐全，调用electron中的start-bot
+  if (!isReady.value) {
+    errorInfo.value = "请填写完整信息";
+    return;
+  } else {
+    window.ipcRenderer.send("start-bot");
+  }
+};
+
+const getConfig = () => {
+    window.ipcRenderer.send("get-config")
+};
+
+window.ipcRenderer.on("action-result", (_event: any, ...args: string[]) => {
+  console.log("[Receive action-result]:", ...args);
+  testMsg.value = args[0];
+});
+
+window.ipcRenderer.on("init", (_event: any, ...args: string[]) => {
+  console.log("[Receive init]:", ...args);
+  info.value = JSON.parse(args[0]);
+});
+
+window.ipcRenderer.on("qrcode-result", (_event: any, ...args: string[]) => {
+  console.log("[Receive qrcode-result]:", ...args);
+  qrUrl.value = args[0];
+});
+
+const start = (infos: any) => {
+  errorInfo.value = "";
+  console.log("start", JSON.stringify(infos));
+  // 如果字段不全则界面提示，否则调用electron中的start-test
+  if (
+    infos.username === "" ||
+    infos.password === "" ||
+    infos.endpoint === "" ||
+    infos.puppet === "" ||
+    infos.adminRoom === ""
+  ) {
+    errorInfo.value = "请填写完整信息";
+    isReady.value = false;
+  } else {
+    isReady.value = true;
+    window.ipcRenderer.send("start-test", JSON.stringify(info.value));
+  }
+};
+</script>
 
 <style scoped>
 .margin-5 {

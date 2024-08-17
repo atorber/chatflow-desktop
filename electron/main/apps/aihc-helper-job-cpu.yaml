@@ -9,7 +9,8 @@ spec:
     spec:
       containers:
       - name: master
-        image: registry.cn-hangzhou.aliyuncs.com/acs-sample/alpine
+        # image: registry.cn-hangzhou.aliyuncs.com/acs-sample/alpine
+        image: alibaba-cloud-linux-3-registry.cn-hangzhou.cr.aliyuncs.com/alinux3/python:3.11.1
         command: ["sh", "-c", "echo Hello, Kubernetes Job! && sleep 30000000000"]
         volumeMounts:
          - name: data

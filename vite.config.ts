@@ -32,6 +32,7 @@ export default defineConfig(({ command }) => {
           },
           vite: {
             build: {
+              chunkSizeWarningLimit: 1024,
               sourcemap,
               minify: isBuild,
               outDir: 'dist-electron/main',

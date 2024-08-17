@@ -2,19 +2,6 @@
   <el-container>
     <el-header style="text-align: left; font-size: 16px">
       <div class="toolbar">
-        <!-- <el-dropdown>
-              <el-icon style="margin-right: 8px; margin-top: 1px">
-                <setting />
-              </el-icon>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item>View</el-dropdown-item>
-                  <el-dropdown-item>Add</el-dropdown-item>
-                  <el-dropdown-item>Delete</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-            <span>Tom</span> -->
         <span>模型权重转换</span>
       </div>
     </el-header>
@@ -111,13 +98,13 @@
           <el-col :span="12">
             <el-form-item label="模型名称">
               <el-select
-                v-model="form.modelName"
+                v-model="form.modelConvertName"
                 placeholder="选择模型系列"
-                @change="handleModel"
+                @change="handleModelConvert"
               >
                 <!-- modelNames作为选项 -->
                 <el-option
-                  v-for="item in form.modelNames"
+                  v-for="item in form.modelConvertNames"
                   :key="item"
                   :label="item"
                   :value="item"
@@ -131,13 +118,13 @@
           <el-col :span="8">
             <el-form-item label="原始格式">
               <el-select
-                v-model="form.trainingMethod"
+                v-model="form.modelConvertSource"
                 placeholder="请选择原始格式"
-                @change="handleTrainingMethod"
+                @change="handleModelConvertSource"
               >
                 <!-- trainingMethods作为选项 -->
                 <el-option
-                  v-for="item in form.trainingMethods"
+                  v-for="item in form.modelConvertSources"
                   :key="item"
                   :label="item"
                   :value="item"
@@ -148,13 +135,13 @@
           <el-col :span="8">
             <el-form-item label="目标格式">
               <el-select
-                v-model="form.fineTuningMethod"
+                v-model="form.modelConvertTarget"
                 placeholder="选择目标格式"
-                @change="handleFineTuningMethod"
+                @change="handleModelConvertTarget"
               >
                 <!-- fineTuningMethods作为选项 -->
                 <el-option
-                  v-for="item in form.fineTuningMethods"
+                  v-for="item in form.modelConvertTargets"
                   :key="item"
                   :label="item"
                   :value="item"
@@ -165,109 +152,121 @@
         </el-row>
       </el-form>
 
-      <el-tag type="success">模型权重转换参数信息</el-tag>
+      <el-divider border-style="dashed">
+        <el-tag type="success">模型权重转换参数信息 {{ form.filePath }}</el-tag>
+      </el-divider>
 
-      <el-form :model="form" label-width="auto" style="margin: 20px">
-        <el-form-item label="镜像地址">
-          <el-input
-            v-model="form.imageUrl"
-            type="textarea"
-            rows="1"
-            placeholder="选择配置后自动生成"
-          />
-        </el-form-item>
-        <el-form-item label="执行命令">
-          <el-input
-            v-model="form.command"
-            type="textarea"
-            rows="15"
-            placeholder="选择配置后自动生成"
-          />
-        </el-form-item>
-        <el-form-item label="环境变量">
-          <el-input
-            v-model="form.env"
-            type="textarea"
-            rows="15"
-            placeholder="选择配置后自动生成"
-          />
-        </el-form-item>
-        <!-- <el-form-item>
+      <el-card class="box-card">
+        <el-form :model="form" label-width="auto" style="margin: 20px">
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="镜像地址">
+                <el-input
+                  v-model="form.imageUrl"
+                  type="textarea"
+                  rows="1"
+                  placeholder="选择配置后自动生成"
+                  ref="imageUrl"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col
+              :span="2"
+              v-if="form.imageUrl"
+              @click="go2copy(form.imageUrl)"
+            >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="48">
+            <el-col :span="22">
+              <el-form-item label="执行命令">
+                <el-input
+                  v-model="form.command"
+                  type="textarea"
+                  rows="15"
+                  placeholder="选择配置后自动生成"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col
+              :span="2"
+              v-if="form.command"
+              @click="go2copy(form.command)"
+            >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="点击复制到剪切板"
+                placement="top-start"
+              >
+                <el-icon color="#E6A23C"><CopyDocument /></el-icon>
+              </el-tooltip>
+            </el-col>
+          </el-row>
+          <!-- <el-form-item>
               <el-button type="primary" @click="onSubmit">保存</el-button>
               <el-button>取消</el-button>
             </el-form-item> -->
-      </el-form>
+        </el-form>
+      </el-card>
     </el-main>
   </el-container>
 </template>
-
-<script lang="ts" setup>
+  
+  <script lang="ts" setup>
 import { ref } from "vue";
-// import { Menu as IconMenu, Message, Setting } from "@element-plus/icons-vue";
-import { reactive } from "vue";
 
+import { reactive, computed } from "vue";
+import { useStore } from "../../store"; // 确保从 vuex 导入 useStore
+
+import {
+  // TrainingModel,
+  MenusInstance,
+  // DefaultRecord,
+  DefaultTrainingParams,
+  tableData,
+  // k8sconfigData,
+  k8sActions,
+  k8sActionsData,
+} from "../types.js";
 import {
   UploadInstance,
   UploadProps,
-  UploadRawFile,
+  // UploadRawFile,
   ElMessage,
+  CascaderProps,
 } from "element-plus";
 
-defineProps<{ msg: string }>();
+import { yamlCreate } from "../trainings/yamlCreate.js";
+import { go2copy } from "../../utils.js";
 
-interface TrainingModel {
-  name: string;
-  version: string;
-  modelFamily: string;
-  trainingMethod: string;
-  fineTuningMethod: string;
-  modelName: string;
-  imageUrl: string;
-  command: string;
-  env: string;
-  modelFamilies: string[];
-  trainingMethods: string[];
-  fineTuningMethods: string[];
-  modelNames: string[];
-  preinstallVersions: string[];
-  source: string;
-  path: string;
-  infos: any;
-  versions: any;
-}
+const store = useStore();
 
 const upload = ref<UploadInstance>();
 
-const record: TrainingModel = {
-  name: "",
-  version: "",
-  modelFamily: "",
-  trainingMethod: "",
-  fineTuningMethod: "sft",
-  modelName: "",
-  imageUrl: "",
-  command: "#! /bin/bash",
-  env: "",
-  modelFamilies: [],
-  trainingMethods: [],
-  fineTuningMethods: [],
-  modelNames: [],
-  preinstallVersions: [],
-  source: "自定义版本",
-  path: "",
-  infos: {},
-  versions: {},
-};
+const recordStore: any = computed({
+  get: () => store.getters.record,
+  set: (value) => store.commit("updateRecord", value),
+});
 
-const menuName = ref("training");
-
-// do not use same name with ref
-const form = reactive(record);
+const record = recordStore.value;
+const form = record;
 
 // 接收消息
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
-  console.log("[Receive send2web]:", ...args);
+  // console.log("[Receive send2web]:", ...args);
   const { method, params } = JSON.parse(args[0]);
+  // console.log("method", method);
+  // console.log("params", params);
 
   switch (method) {
     case "getPreinstallVersions":
@@ -289,14 +288,12 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
       form.infos = params;
       setModelFamilies(params);
       break;
-    case "initError":
-      ElMessage.error("初始化失败, 请退出重启程序");
-      break;
     default:
       break;
   }
 });
 
+// 选择模型系列
 function setModelFamilies(params: string[]) {
   form.modelFamilies = Object.keys(params).filter(
     (item: string) => item.indexOf("version.txt") === -1
@@ -305,10 +302,11 @@ function setModelFamilies(params: string[]) {
 }
 
 // 发送消息
-function send2ipc(method: string, params: string) {
+function send2ipc(method: string, params: string | object) {
   window.ipcRenderer.send("createTraining", JSON.stringify({ method, params }));
 }
 
+// 选择文件
 const handleChange: any = (uploadFile: any, uploadFiles: any) => {
   console.log("on handleChange", uploadFile);
   const file = uploadFile;
@@ -316,18 +314,6 @@ const handleChange: any = (uploadFile: any, uploadFiles: any) => {
   if (file.raw.path.indexOf("examples") !== -1 && file.name === "version.txt") {
     form.path = file.raw.path;
     console.log("form.path", form.path);
-    send2ipc("getCustomVersions", form.path);
-  } else {
-    ElMessage.error("请选择正确的文件");
-  }
-};
-
-// 选择文件
-const handleExceed: UploadProps["onExceed"] = (files) => {
-  console.log("on exceed", files);
-  const file = files[0];
-  if (file.name === "version.txt" && file.path.indexOf("examples") !== -1) {
-    form.path = file.path;
     send2ipc("getCustomVersions", form.path);
   } else {
     ElMessage.error("请选择正确的文件");
@@ -342,15 +328,8 @@ function handleSource(val: string | number | boolean | undefined) {
     send2ipc("getPreinstallVersions", "");
     handleImageVersion("");
   } else {
-    form.path = "";
     handleImageVersion("");
   }
-}
-
-// 初始化
-function init(files: string[]) {
-  form.modelFamilies = files;
-  handleModelFamily(files[0]);
 }
 
 // 选择镜像版本
@@ -378,8 +357,103 @@ function handleModelFamily(val: string) {
       }
     );
     handleTrainingMethod(form.trainingMethods[0]);
+    getConverts();
   } else {
+    form.modelFamilies = [];
     handleTrainingMethod("");
+    handleModelConvert("");
+  }
+}
+
+function getConverts() {
+  const { modelFamily } = form;
+  const convertInfo: any = {};
+  if (modelFamily && form.infos[modelFamily]["checkpoint_convert"]) {
+    const keys = Object.keys(form.infos[modelFamily]["checkpoint_convert"]);
+    // console.log("keys", keys);
+    for (const convert of keys) {
+      console.log("convert", convert);
+      // const convert = key.split("_")[1] + '_' + key.split("_")[2];
+
+      // 排除megatron_core
+      if (convert.indexOf("megatron_core") === -1) {
+        const convertArr = convert.split("_");
+        const modelName = convertArr[1] + "_" + convertArr[2];
+        const source = convertArr[3];
+        const target = convertArr[5].split(".")[0];
+        if (convertInfo[modelName]) {
+          if (convertInfo[modelName][source]) {
+            convertInfo[modelName][source].push(target);
+          } else {
+            convertInfo[modelName][source] = [target];
+          }
+        } else {
+          convertInfo[modelName] = {};
+          convertInfo[modelName][source] = [target];
+        }
+      }
+    }
+
+    // console.log("convertInfo", JSON.stringify(convertInfo));
+
+    form.modelConvertInfo = convertInfo;
+    form.modelConvertNames = Object.keys(convertInfo);
+
+    const defaultModel = form.modelConvertNames[0];
+    handleModelConvert(defaultModel);
+  } else {
+    form.modelConvertInfo = {};
+    form.modelConvertNames = [];
+    handleModelConvert("");
+  }
+}
+
+function handleModelConvertSource(val: string) {
+  form.modelConvertSource = val;
+  if (val) {
+    form.modelConvertTargets =
+      form.modelConvertInfo[form.modelConvertName][val];
+    form.modelConvertTarget = form.modelConvertTargets[0];
+    handleModelConvertTarget(form.modelConvertTarget);
+  } else {
+    handleModelConvert("");
+  }
+}
+
+function handleModelConvertTarget(val: string) {
+  form.modelConvertTarget = val;
+  if (val) {
+    const filePath = `examples/${form.modelFamily}/checkpoint_convert/convert_${form.modelConvertName}_${form.modelConvertSource}_to_${form.modelConvertTarget}.sh`;
+    const command =
+      form.infos[form.modelFamily]["checkpoint_convert"][
+        `convert_${form.modelConvertName}_${form.modelConvertSource}_to_${form.modelConvertTarget}.sh`
+      ];
+    form.filePath = filePath;
+    handleCommand(command);
+  } else {
+    clearCommand();
+  }
+}
+
+function clearCommand() {
+  form.command = "";
+  form.env = "";
+  form.imageUrl = "";
+  form.filePath = "";
+}
+
+function handleModelConvert(val: string) {
+  form.modelConvertName = val;
+  if (val) {
+    form.modelConvertSources = Object.keys(form.modelConvertInfo[val]);
+    handleModelConvertSource(form.modelConvertSources[0]);
+  } else {
+    clearCommand();
+    form.modelConvertNames = [];
+    form.modelConvertSources = [];
+    form.modelConvertSource = "";
+    form.modelConvertTargets = [];
+    form.modelConvertTarget = "";
   }
 }
 
@@ -404,34 +478,26 @@ function handleTrainingMethod(val: string) {
     form.fineTuningMethods = fineTuningMethods;
     handleFineTuningMethod(fineTuningMethods[0]);
   } else {
+    form.trainingMethods = [];
     handleFineTuningMethod("");
   }
 }
 
 // 选择数据预处理脚本
 function handlePreprocessData() {
-  console.log(
-    "handlePreprocessData form",
-    form.infos[form.modelFamily][form.trainingMethod]
-  );
+  const filePath = `examples/${form.modelFamily}/${form.trainingMethod}/preprocess_data.sh`;
   const command =
     form.infos[form.modelFamily][form.trainingMethod]["preprocess_data.sh"];
+  form.filePath = filePath;
   handleCommand(command);
-  console.log("form.command", command);
 }
 
 // 选择微调方法
 function handleFineTuningMethod(val: string) {
   form.fineTuningMethod = val;
   if (val) {
-    if (menuName.value === "training") {
-      handleModelList(form.version);
-    }
-
-    if (menuName.value === "preprocess") {
-      handlePreprocessData();
-    }
   } else {
+    form.trainingMethods = [];
     handleModel("");
   }
 }
@@ -440,12 +506,13 @@ function handleFineTuningMethod(val: string) {
 function handleModel(val: string) {
   form.modelName = val;
   if (val) {
-    form.command = form.infos[form.modelFamily][form.trainingMethod][val];
-    handleCommand(form.command);
+    const command = form.infos[form.modelFamily][form.trainingMethod][val];
+    const filePath = `examples/${form.modelFamily}/${form.trainingMethod}/${val}`;
+    form.filePath = filePath;
+    handleCommand(command);
   } else {
-    form.command = "";
-    form.env = "";
-    form.imageUrl = "";
+    form.modelNames = [];
+    clearCommand();
   }
 }
 
@@ -461,6 +528,8 @@ function handleEnvList(command: string) {
   const envList = command.match(/\${[A-Z_]+:-".*?"}/g);
   let env =
     "#根据实际需求配置修改环境变量，推荐使用示例中的默认路径存放，尽量通过环境变量修改配置而不是直接修改执行命令\n\n";
+
+  let envs = "";
   if (envList) {
     for (const item of envList) {
       const key = item.match(/[A-Z_]+/g);
@@ -514,10 +583,30 @@ function handleEnvList(command: string) {
         }
 
         env += "\n";
+
+        envs += `                - name: ${newKey}\n`;
+        envs += `                  value: ${newValue}\n`;
       }
     }
   }
+  envs =
+    "                - name: CUDA_DEVICE_MAX_CONNECTIONS\n                  value: 1";
+  env =
+    "#根据实际需求配置修改环境变量，推荐使用示例中的默认路径存放，尽量通过环境变量修改配置而不是直接修改执行命令\n\n" +
+    "CUDA_DEVICE_MAX_CONNECTIONS=1";
+
   form.env = env;
+  form.envs = envs;
+
+  // 将command的每一行缩进4个空格
+  const commandList = command.split("\n");
+  let newCommand = "";
+  for (const item of commandList) {
+    newCommand += `    ${item}\n`;
+  }
+  const yaml = yamlCreate(newCommand, form.imageUrl, form.envs);
+  // console.log("yaml demo", yaml);
+  form.yaml = yaml;
 }
 
 // 计算可选的模型列表
@@ -538,38 +627,15 @@ function handleModelList(version: string) {
     handleModel("");
   }
 }
-
-// 复制镜像地址到剪贴板
-function handleCopyImageUrl() {
-  const { imageUrl } = form;
-  if (imageUrl) {
-    // 复制imageUrl
-    // $copyText(imageUrl);
-
-    ElMessage.success("复制成功");
-  }
-}
-
-// 复制执行命令到剪贴板
-function handleCopyCommand() {
-  const { command } = form;
-  if (command) {
-    // $copyText(command);
-    ElMessage.success("复制成功");
-  }
-}
-
-// 复制环境变量到剪贴板
-function handleCopyEnv() {
-  const { env } = form;
-  if (env) {
-    // $copyText(env);
-    ElMessage.success("复制成功");
-  }
-}
 </script>
-
-<style scoped>
+  
+  <script lang="ts">
+export default {
+  name: "ModelTransformation",
+};
+</script>
+  
+  <style scoped>
 .layout-container-demo .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
@@ -614,6 +680,12 @@ function handleCopyEnv() {
   align-items: center;
 }
 
+.el-col-10,
+.el-col-10.is-guttered {
+  display: flex;
+  align-items: center;
+}
+
 .grid-content {
   border-radius: 4px;
   min-height: 36px;
@@ -628,4 +700,50 @@ function handleCopyEnv() {
   margin-bottom: 9px;
   margin-top: 9px;
 }
-</style>
+.el-header {
+  border-radius: 3px;
+}
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+}
+.example-pagination-block {
+  margin-top: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text {
+  font-size: 14px;
+}
+
+.item {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+/* .box-card {
+    width: 480px;
+  } */
+
+.margin-top {
+  margin-top: 10px;
+}
+.margin-bottom {
+  margin-bottom: 10px;
+}
+.margin-left {
+  margin-left: 10px;
+}
+.margin-right {
+  margin-right: 10px;
+}
+</style>./types.js

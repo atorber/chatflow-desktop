@@ -1,5 +1,3 @@
-import { fa } from "element-plus/es/locale";
-
 export interface TrainingModel {
   name: string;
   version: string;
@@ -50,7 +48,7 @@ interface MenuList {
   index: string;
   title: string;
   icon?: string; // 图标，可选属性
-  items: MenuItem[]; // 子菜单
+  items?: MenuItem[]; // 子菜单
   subMenus?: SubMenuItem[]; // 存在无限层级可能的话可以使用递归类型, 这里注释掉了
 }
 
@@ -58,13 +56,18 @@ interface MenuList {
 interface MenusInstance {
   defaultOpeneds: string[]; // 默认打开的菜单项索引数组
   defaultActive: string; // 当前活跃的菜单项索引
-  items: MenuList[]; // 菜单项列表
+  items?: MenuList[]; // 菜单项列表
 }
 
 export const MenusInstance: MenusInstance = {
-  defaultOpeneds: ['1'],
-  defaultActive: "training",
+  defaultOpeneds: ['0'],
+  defaultActive: "0",
   items: [
+    {
+      index: "0",
+      title: "概览",
+      icon: "House",
+    },
     {
       index: "1",
       title: "训练",
@@ -111,7 +114,7 @@ export const MenusInstance: MenusInstance = {
       items: [
         {
           index: "models",
-          title: "模型"
+          title: "模型权重"
         },
         {
           index: "datasets",
@@ -124,6 +127,10 @@ export const MenusInstance: MenusInstance = {
         {
           index: "datasource",
           title: "数据来源"
+        },
+        {
+          index: "devmachine",
+          title: "开发机"
         },
       ],
     },
@@ -294,6 +301,45 @@ export const tableData = [
     date: "2016-05-01",
     name: "Tom",
     state: "California",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+];
+
+export const k8sconfigData = [
+  {
+    date: "2016-05-03",
+    name: "hwl-cce-bd/cce-e0isdmib",
+    state: "在用",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-02",
+    name: "ENI-TEST/cce-vrdsn1jv",
+    state: "未激活",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Office",
+  },
+  {
+    date: "2016-05-04",
+    name: "Tom",
+    state: "未激活",
+    city: "Los Angeles",
+    address: "No. 189, Grove St, Los Angeles",
+    zip: "CA 90036",
+    tag: "Home",
+  },
+  {
+    date: "2016-05-01",
+    name: "Tom",
+    state: "未激活",
     city: "Los Angeles",
     address: "No. 189, Grove St, Los Angeles",
     zip: "CA 90036",

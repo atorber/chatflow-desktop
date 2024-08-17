@@ -10,8 +10,11 @@ import * as stream from 'stream';
 const KUBECONFIG_PATH = path.join(process.env.HOME || process.env.USERPROFILE || '', '.kube', 'config');
 
 // 保存 kubeconfig 文件
-async function saveKubeconfig(config: any): Promise<void> {
-    const yamlContent = yaml.stringify(config);
+async function saveKubeconfig(config: string): Promise<string> {
+    // const yamlContent = yaml.stringify(config);
+    const yamlContent = config;
+    
+    console.log('Saving kubeconfig:', yamlContent);
     await fs.writeFileSync(KUBECONFIG_PATH, yamlContent);
     return config;
 }
@@ -36,12 +39,16 @@ export async function updateKubeconfig(newConfig: string): Promise<any> {
 
 // 获取集群节点列表
 export async function listNodes() {
+    console.debug('listNodes', KUBECONFIG_PATH);
     try {
         const kc = new KubeConfig();
         kc.loadFromDefault();
 
         const coreV1Api = kc.makeApiClient(CoreV1Api);
-
+        // 确保在调用 API 之前检查是否有活动的集群
+        if (!kc.getCurrentCluster()) {
+            throw new Error('No active cluster!');
+        }
         const res = await coreV1Api.listNode();
         console.log('Nodes in the cluster:', JSON.stringify(res.body));
         return res
