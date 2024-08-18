@@ -154,22 +154,23 @@ export default {
 </script>
   
     <style scoped>
-.layout-container-demo .el-header {
+ .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
-.layout-container-demo .el-aside {
+ .el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
-.layout-container-demo .el-menu {
+ .el-menu {
   border-right: none;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+ .el-main {
+  /* padding: 0; */
+  min-height: 768px;
 }
-.layout-container-demo .toolbar {
+ .toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

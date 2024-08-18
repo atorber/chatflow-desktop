@@ -2548,7 +2548,8 @@ export default {
   border-right: none;
 }
 .layout-container-demo .el-main {
-  padding: 0;
+  /* padding: 0; */
+  min-height: 768px;
 }
 .layout-container-demo .toolbar {
   display: inline-flex;

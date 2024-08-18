@@ -96,6 +96,11 @@ interface Tree {
   leaf?: boolean;
 }
 
+const systemPodStore = computed({
+  get: () => store.getters.systemPod,
+  set: (value) => store.commit("updateSystemPod", value),
+});
+
 const k8sRecordStore: any = computed({
   get: () => store.getters.k8sRecord,
   set: (value) => store.commit("updateK8sRecord", value),
@@ -103,7 +108,6 @@ const k8sRecordStore: any = computed({
 
 const k8sRecord = k8sRecordStore.value;
 
-const cpuPod = ref({ status: { phase: "" }, metadata: { name: "" } });
 const curNode = ref<Node | null>(null);
 const curResolve = ref<((data: Tree[]) => void) | null>(null);
 
@@ -132,7 +136,7 @@ const updateFiles = (path = "/") => {
   setTimeout(() => {
     updateFilesIsLoading.value = false;
   }, 60000);
-  send2ipc("updateFiles", { podName: cpuPod.value.metadata.name, path });
+  send2ipc("updateFiles", { podName: systemPodStore.value.cpuPod, path });
 };
 
 const setFiles = (params: any) => {
@@ -184,22 +188,23 @@ export default {
 </script>
     
       <style scoped>
-.layout-container-demo .el-header {
+ .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
-.layout-container-demo .el-aside {
+ .el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
-.layout-container-demo .el-menu {
+ .el-menu {
   border-right: none;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+ .el-main {
+  /* padding: 0; */
+  min-height: 768px;
 }
-.layout-container-demo .toolbar {
+ .toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

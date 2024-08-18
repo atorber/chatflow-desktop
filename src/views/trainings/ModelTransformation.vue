@@ -7,9 +7,7 @@
     </el-header>
 
     <el-main>
-      <!-- <el-tag type="success">任务信息</el-tag> -->
-
-      <el-form :model="form" label-width="auto" style="margin: 20px">
+      <el-form :model="form" label-width="auto" style="margin: 10px">
         <el-row :gutter="48">
           <el-col :span="12">
             <el-form-item label="镜像源">
@@ -157,7 +155,7 @@
       </el-divider>
 
       <el-card class="box-card">
-        <el-form :model="form" label-width="auto" style="margin: 20px">
+        <el-form :model="form" label-width="auto" style="margin: 10px">
           <el-row :gutter="48">
             <el-col :span="22">
               <el-form-item label="镜像地址">
@@ -636,22 +634,23 @@ export default {
 </script>
   
   <style scoped>
-.layout-container-demo .el-header {
+ .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
-.layout-container-demo .el-aside {
+ .el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
-.layout-container-demo .el-menu {
+ .el-menu {
   border-right: none;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+ .el-main {
+  /* padding: 0; */
+  min-height: 768px;
 }
-.layout-container-demo .toolbar {
+ .toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

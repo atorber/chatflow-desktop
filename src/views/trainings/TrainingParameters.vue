@@ -8,7 +8,7 @@
     </el-header>
 
     <el-main>
-      <el-steps :active="active" align-center style="margin: 20px 0">
+      <el-steps :active="active" align-center style="margin: 10px 0">
         <el-step title="模型信息" description="选择训练模型、训练方法" />
         <el-step title="资源配置" description="选择GPU、队列等" />
         <el-step title="数据源" description="选择数据源、数据集" />
@@ -933,22 +933,23 @@ export default {
 </script>
   
   <style scoped>
-.layout-container-demo .el-header {
+ .el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
-.layout-container-demo .el-aside {
+ .el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
-.layout-container-demo .el-menu {
+ .el-menu {
   border-right: none;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+ .el-main {
+  /* padding: 0; */
+  min-height: 768px;
 }
-.layout-container-demo .toolbar {
+ .toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

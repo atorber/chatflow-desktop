@@ -9,7 +9,7 @@
     <el-main>
       <!-- <el-tag type="success">任务信息</el-tag> -->
 
-      <el-form :model="form" label-width="auto" style="margin: 20px">
+      <el-form :model="form" label-width="auto" style="margin: 10px">
         <el-row :gutter="48">
           <el-col :span="12">
             <el-form-item label="镜像源">
@@ -142,7 +142,7 @@
       </el-divider>
 
       <el-card class="box-card">
-        <el-form :model="form" label-width="auto" style="margin: 20px">
+        <el-form :model="form" label-width="auto" style="margin: 10px">
           <el-row :gutter="48">
             <el-col :span="22">
               <el-form-item label="镜像地址">
@@ -197,10 +197,6 @@
               </el-tooltip>
             </el-col>
           </el-row>
-          <!-- <el-form-item>
-              <el-button type="primary" @click="onSubmit">保存</el-button>
-              <el-button>取消</el-button>
-            </el-form-item> -->
         </el-form>
       </el-card>
     </el-main>
@@ -213,16 +209,6 @@ import { ref } from "vue";
 import { reactive, computed } from "vue";
 import { useStore } from "../../store"; // 确保从 vuex 导入 useStore
 
-import {
-  // TrainingModel,
-  MenusInstance,
-  // DefaultRecord,
-  DefaultTrainingParams,
-  tableData,
-  // k8sconfigData,
-  k8sActions,
-  k8sActionsData,
-} from "../types.js";
 import {
   UploadInstance,
   UploadProps,
@@ -244,34 +230,8 @@ interface Tree {
   leaf?: boolean;
 }
 
-const cpuPod = ref({ status: { phase: "" }, metadata: { name: "" } });
-
 const curNode = ref<Node | null>(null);
 const curResolve = ref<((data: Tree[]) => void) | null>(null);
-
-const setFiles = (params: any) => {
-  // console.log("setFiles", params);
-  const files = params.files;
-  const parent = params.parent;
-
-  const node = curNode.value;
-  const resolve = curResolve.value;
-
-  if (node && resolve) {
-    const data: Tree[] = files
-      .filter((item: { name: string }) => item.name.indexOf("->") === -1)
-      .map((item: any) => {
-        return {
-          name:
-            node.level === 0 ? parent + item.name : parent + "/" + item.name,
-          leaf: item.type !== "directory",
-        };
-      });
-    updateFilesIsLoading.value = false;
-
-    return resolve(data);
-  }
-};
 
 const k8sRecordStore: any = computed({
   get: () => store.getters.k8sRecord,
@@ -298,123 +258,6 @@ const record = recordStore.value;
 const form = record;
 
 const menuName = ref("0");
-
-const k8sInfo = reactive({
-  NodeList: [],
-  PyTorchJobList: [],
-  NormalJobList: [],
-  PodList: [],
-  NamespaceList: [],
-});
-
-const updateNodeListIsLoading = ref(false);
-const updatePyTorchJobListIsLoading = ref(false);
-const updateNormalJobListIsLoading = ref(false);
-const updatePodListIsLoading = ref(false);
-const updateFilesIsLoading = ref(false);
-const updateNamespaceListIsLoading = ref(false);
-
-const updateNamespaceList = () => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-  if (updateNamespaceListIsLoading.value) {
-    return;
-  }
-  updateNamespaceListIsLoading.value = true;
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updateNamespaceListIsLoading.value = false;
-  }, 60000);
-  send2ipc("getNamespaceList", "");
-};
-
-const updateNodeList = () => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-
-  if (updateNodeListIsLoading.value) {
-    return;
-  }
-  updateNodeListIsLoading.value = true;
-  // const loadingInstance = ElLoading.service({ fullscreen: true });
-  // loadingInstance.close();
-
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updateNodeListIsLoading.value = false;
-  }, 60000);
-
-  // 请求中
-  send2ipc("listNodes", "");
-};
-
-const updatePyTorchJobList = () => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-  if (updatePyTorchJobListIsLoading.value) {
-    return;
-  }
-  updatePyTorchJobListIsLoading.value = true;
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updatePyTorchJobListIsLoading.value = false;
-  }, 60000);
-  send2ipc("getPytorchJobList", "");
-};
-
-const updateNormalJobList = () => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-  if (updateNormalJobListIsLoading.value) {
-    return;
-  }
-  updateNormalJobListIsLoading.value = true;
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updateNormalJobListIsLoading.value = false;
-  }, 60000);
-  send2ipc("getNormalJobList", "");
-};
-
-const updatePodList = () => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-  if (updatePodListIsLoading.value) {
-    return;
-  }
-  updatePodListIsLoading.value = true;
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updatePodListIsLoading.value = false;
-  }, 60000);
-  send2ipc("getNamespacePods", "default");
-};
-
-const updateFiles = (path = "/") => {
-  if (k8sRecord.config === "") {
-    ElMessage.error("请先更新Kubeconfig");
-    return;
-  }
-  if (updateFilesIsLoading.value) {
-    return;
-  }
-  updateFilesIsLoading.value = true;
-  // 计时60s，超时则重置loading
-  setTimeout(() => {
-    updateFilesIsLoading.value = false;
-  }, 60000);
-  send2ipc("updateFiles", { podName: cpuPod.value.metadata.name, path });
-};
 
 // 接收消息
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
@@ -454,145 +297,6 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
       }
       break;
     }
-    case "getSystemPod": {
-      // console.log("getSystemPod", params);
-      cpuPod.value = params;
-      // console.log("cpuPod", cpuPod.value);
-      break;
-    }
-    case "listNodes": {
-      const names = params.response.body.items.map((item: any) => {
-        // console.log("item", item);
-        return {
-          name: item.metadata.name,
-          creationTimestamp: item.metadata.creationTimestamp,
-          uid: item.metadata.uid,
-          osImage: item.status.nodeInfo.osImage,
-          architecture: item.status.nodeInfo.architecture,
-        };
-      });
-      names.sort((a: any, b: any) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
-      k8sInfo.NodeList = names;
-      ElMessage.success("更新成功");
-      updateNodeListIsLoading.value = false;
-
-      break;
-    }
-    case "getNamespaceList": {
-      const names = params.response.body.items.map((item: any) => {
-        // console.log("item", item);
-        let tags: any[] = [];
-        if (item.metadata.labels) {
-          tags = Object.keys(item.metadata.labels).map((label: any) => {
-            return label + ":" + item.metadata.labels[label];
-          });
-        }
-        return {
-          name: item.metadata.name,
-          creationTimestamp: item.metadata.creationTimestamp,
-          active: item.status.phase,
-          tags: tags.join("\n"),
-        };
-      });
-      names.sort((a: any, b: any) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
-      k8sInfo.NamespaceList = names;
-      ElMessage.success("更新成功");
-      updateNamespaceListIsLoading.value = false;
-      break;
-    }
-    case "getNamespacePods": {
-      const names = params.response.body.items.map((item: any) => {
-        // console.log("item", item);
-        return {
-          name: item.metadata.name,
-          creationTimestamp: item.metadata.creationTimestamp,
-          active: item.status.phase || "--",
-          uid: item.metadata.uid,
-          namespace: item.metadata.namespace,
-          startTime: item.status.startTime,
-          completionTime: item.status.completionTime || "--",
-        };
-      });
-      names.sort((a: any, b: any) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
-      if (params.response.body.kind === "PodList") {
-        const namesNew = names.filter(
-          (item: any) =>
-            item.active === "Running" ||
-            item.name.includes("aihc-helper-job-cpu")
-        );
-        k8sInfo.PodList = namesNew;
-        ElMessage.success("更新成功");
-        updatePodListIsLoading.value = false;
-      }
-      break;
-    }
-    case "updateFiles": {
-      setFiles(params);
-      break;
-    }
-    case "getNormalJobList": {
-      // console.log("params.response.body", params.response.body.items[0]);
-      const names = params.response.body.items.map((item: any) => {
-        // console.log("item", item);
-        return {
-          name: item.metadata.name,
-          creationTimestamp: item.metadata.creationTimestamp,
-          active: item.status.active || "0",
-          uid: item.metadata.uid,
-          namespace: item.metadata.namespace,
-          startTime: item.status.startTime,
-          completionTime: item.status.completionTime || "--",
-        };
-      });
-      names.sort((a: any, b: any) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
-      k8sInfo.NormalJobList = names;
-      ElMessage.success("更新成功");
-      updateNormalJobListIsLoading.value = false;
-
-      break;
-    }
-    case "getPytorchJobList": {
-      // console.log("params.response.body", params.response.body.items[0]);
-      const names = params.response.body.items.map((item: any) => {
-        // console.log("item", item);
-        return {
-          name: item.metadata.name,
-          creationTimestamp: item.metadata.creationTimestamp,
-          kind: item.kind,
-          uid: item.metadata.uid,
-          namespace: item.metadata.namespace,
-          startTime: item.status.startTime,
-          completionTime: item.status.completionTime,
-        };
-      });
-      names.sort((a: any, b: any) => {
-        return new Date(b.time).getTime() - new Date(a.time).getTime();
-      });
-      k8sInfo.PyTorchJobList = names;
-      ElMessage.success("更新成功");
-      updatePyTorchJobListIsLoading.value = false;
-
-      break;
-    }
-    case "k8s":
-      k8sRecord.res = JSON.stringify(params, null, 2);
-      break;
-    case "updateKubeconfig":
-      ElMessage.success("Kubeconfig更新成功");
-      // console.log("updateKubeconfig k8sRecord.config", params);
-      k8sRecord.config = params;
-      break;
-    case "initError":
-      ElMessage.error("初始化失败, 请退出重启程序");
-      break;
     default:
       break;
   }
@@ -950,22 +654,23 @@ export default {
 </script>
   
   <style scoped>
-.layout-container-demo .el-header {
+.el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
-.layout-container-demo .el-aside {
+.el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
-.layout-container-demo .el-menu {
+.el-menu {
   border-right: none;
 }
-.layout-container-demo .el-main {
-  padding: 0;
+.el-main {
+  /* padding: 0; */
+  min-height: 768px;
 }
-.layout-container-demo .toolbar {
+.toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

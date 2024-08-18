@@ -13,14 +13,21 @@ import {
     k8sActionsData,
 } from '../views/types'
 
-interface State {
+export interface State {
     cities: string[];
     checkedCities: string[];
     record?: TrainingModel;
-    k8sRecord?: {
-        config: string
-    };
+    k8sRecord?: k8sRecord;
+    systemPod: SystemPod
 }
+
+export interface k8sRecord {
+    config: string
+};
+
+export interface SystemPod {
+    cpuPod: string;
+};
 
 const state: State = {
     cities: ['Shanghai', 'Beijing', 'Guangzhou', 'Shenzhen'],
@@ -28,7 +35,10 @@ const state: State = {
     record: DefaultRecord,
     k8sRecord: {
         config: '',
-    }
+    },
+    systemPod: {
+        cpuPod: '',
+    },
 };
 
 const mutations = {
@@ -38,8 +48,11 @@ const mutations = {
     updateRecord(state: State, record: TrainingModel) {
         state.record = record;
     },
-    updateK8sRecord(state: State, k8sRecord: { config: string }) {
+    updateK8sRecord(state: State, k8sRecord: k8sRecord) {
         state.k8sRecord = k8sRecord;
+    },
+    updateSystemPod(state: State, systemPod: SystemPod) {
+        state.systemPod = systemPod;
     },
 };
 
@@ -48,6 +61,7 @@ const getters = {
     checkedCities: (state: State) => state.checkedCities,
     record: (state: State) => state.record,
     k8sRecord: (state: State) => state.k8sRecord,
+    systemPod: (state: State) => state.systemPod,
 };
 
 const actions = {}

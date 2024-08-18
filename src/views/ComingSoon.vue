@@ -1,48 +1,42 @@
 <template>
   <el-container>
-    <el-header style="text-align: left; font-size: 16px">
-      <div class="toolbar">
-        <span>概览</span>
-      </div>
-    </el-header>
+    <!-- <el-header style="text-align: left; font-size: 16px">
+        <div class="toolbar">
+          <span>数据预处理</span>
+        </div>
+      </el-header> -->
 
     <el-main>
-      <el-steps :active="1" align-center style="margin: 20px 0">
-        <el-step title="模型信息" description="选择训练模型、训练方法" />
-        <el-step title="资源配置" description="选择GPU、队列等" />
-        <el-step title="数据源" description="选择数据源、数据集" />
-        <el-step title="高级选项" description="容错、日志持久化、RDMA等" />
-      </el-steps>
+      <el-empty description="Coming soon ..." />
     </el-main>
   </el-container>
 </template>
-<script lang="ts" setup>
+  <script lang="ts" setup>
 </script>
   
-<script lang="ts">
+  <script lang="ts">
 export default {
-  name: "Overview",
+  name: "ComingSoon",
 };
 </script>
-
   <style scoped>
- .el-header {
+.el-header {
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
 }
- .el-aside {
+.el-aside {
   color: var(--el-text-color-primary);
   /* background: var(--el-color-primary-light-8); */
 }
- .el-menu {
+.el-menu {
   border-right: none;
 }
- .el-main {
-  min-height: 768px;
+.el-main {
   /* padding: 0; */
+  min-height: 1000px;
 }
- .toolbar {
+.toolbar {
   display: inline-flex;
   align-items: center;
   justify-content: center;

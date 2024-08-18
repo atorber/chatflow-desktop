@@ -366,6 +366,7 @@ ipcMain.on("createTraining", async (event, data) => {
       // params.podName = 'aihc-helper-job-cpu-rs4c4'
       // params.containerName = 'example-container'
       // const res = await listPodFiles(params.namespace, params.podName, params.containerName, params.command, undefined)
+      console.log('updateFiles:', 'begin...', params)
       const res = await k8sApi.listPodFilesInMasterContainer(params.podName, params.path)
       console.log('execCommandInPod ipc:', res)
       send2web('updateFiles', res)
