@@ -220,18 +220,7 @@ import {
 import { yamlCreate } from "../trainings/yamlCreate.js";
 import { go2copy } from "../../utils.js";
 
-import type Node from "element-plus/es/components/tree/src/model/node";
-
 const store = useStore();
-
-/*树形结构数据*/
-interface Tree {
-  name: string;
-  leaf?: boolean;
-}
-
-const curNode = ref<Node | null>(null);
-const curResolve = ref<((data: Tree[]) => void) | null>(null);
 
 const k8sRecordStore: any = computed({
   get: () => store.getters.k8sRecord,
@@ -247,17 +236,8 @@ const recordStore: any = computed({
   set: (value) => store.commit("updateRecord", value),
 });
 
-// console.log("record1", JSON.stringify(record1.value, null, 2));
-
-// const record: TrainingModel = JSON.parse(JSON.stringify(DefaultRecord));
-
-const record = recordStore.value;
-
-// do not use same name with ref
 // const form = reactive(record);
-const form = record;
-
-const menuName = ref("0");
+const form = recordStore.value;
 
 // 接收消息
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
@@ -341,6 +321,8 @@ function handleSource(val: string | number | boolean | undefined) {
   }
 }
 
+handleSource('预置版本');
+
 // 选择镜像版本
 function handleImageVersion(val: string) {
   const version = String(val);
@@ -366,83 +348,10 @@ function handleModelFamily(val: string) {
       }
     );
     handleTrainingMethod(form.trainingMethods[0]);
-    if (menuName.value === "convert") {
-      getConverts();
-    }
+    handlePreprocessData();
   } else {
     form.modelFamilies = [];
     handleTrainingMethod("");
-    handleModelConvert("");
-  }
-}
-
-function getConverts() {
-  const { modelFamily } = form;
-  const convertInfo: any = {};
-  if (modelFamily && form.infos[modelFamily]["checkpoint_convert"]) {
-    const keys = Object.keys(form.infos[modelFamily]["checkpoint_convert"]);
-    // console.log("keys", keys);
-    for (const convert of keys) {
-      console.log("convert", convert);
-      // const convert = key.split("_")[1] + '_' + key.split("_")[2];
-
-      // 排除megatron_core
-      if (convert.indexOf("megatron_core") === -1) {
-        const convertArr = convert.split("_");
-        const modelName = convertArr[1] + "_" + convertArr[2];
-        const source = convertArr[3];
-        const target = convertArr[5].split(".")[0];
-        if (convertInfo[modelName]) {
-          if (convertInfo[modelName][source]) {
-            convertInfo[modelName][source].push(target);
-          } else {
-            convertInfo[modelName][source] = [target];
-          }
-        } else {
-          convertInfo[modelName] = {};
-          convertInfo[modelName][source] = [target];
-        }
-      }
-    }
-
-    // console.log("convertInfo", JSON.stringify(convertInfo));
-
-    form.modelConvertInfo = convertInfo;
-    form.modelConvertNames = Object.keys(convertInfo);
-
-    const defaultModel = form.modelConvertNames[0];
-    handleModelConvert(defaultModel);
-  } else {
-    form.modelConvertInfo = {};
-    form.modelConvertNames = [];
-    handleModelConvert("");
-  }
-}
-
-function handleModelConvertSource(val: string) {
-  form.modelConvertSource = val;
-  if (val) {
-    form.modelConvertTargets =
-      form.modelConvertInfo[form.modelConvertName][val];
-    form.modelConvertTarget = form.modelConvertTargets[0];
-    handleModelConvertTarget(form.modelConvertTarget);
-  } else {
-    handleModelConvert("");
-  }
-}
-
-function handleModelConvertTarget(val: string) {
-  form.modelConvertTarget = val;
-  if (val) {
-    const filePath = `examples/${form.modelFamily}/checkpoint_convert/convert_${form.modelConvertName}_${form.modelConvertSource}_to_${form.modelConvertTarget}.sh`;
-    const command =
-      form.infos[form.modelFamily]["checkpoint_convert"][
-        `convert_${form.modelConvertName}_${form.modelConvertSource}_to_${form.modelConvertTarget}.sh`
-      ];
-    form.filePath = filePath;
-    handleCommand(command);
-  } else {
-    clearCommand();
   }
 }
 
@@ -451,21 +360,6 @@ function clearCommand() {
   form.env = "";
   form.imageUrl = "";
   form.filePath = "";
-}
-
-function handleModelConvert(val: string) {
-  form.modelConvertName = val;
-  if (val) {
-    form.modelConvertSources = Object.keys(form.modelConvertInfo[val]);
-    handleModelConvertSource(form.modelConvertSources[0]);
-  } else {
-    clearCommand();
-    form.modelConvertNames = [];
-    form.modelConvertSources = [];
-    form.modelConvertSource = "";
-    form.modelConvertTargets = [];
-    form.modelConvertTarget = "";
-  }
 }
 
 // 选择训练方式
@@ -507,13 +401,7 @@ function handlePreprocessData() {
 function handleFineTuningMethod(val: string) {
   form.fineTuningMethod = val;
   if (val) {
-    if (menuName.value === "training") {
-      handleModelList(form.version);
-    }
-
-    if (menuName.value === "preprocess") {
-      handlePreprocessData();
-    }
+    handlePreprocessData();
   } else {
     form.trainingMethods = [];
     handleModel("");
@@ -627,24 +515,6 @@ function handleEnvList(command: string) {
   form.yaml = yaml;
 }
 
-// 计算可选的模型列表
-function handleModelList(version: string) {
-  const { modelFamily, trainingMethod, fineTuningMethod } = form;
-  if (version) {
-    const modelList = Object.keys(
-      form.infos[modelFamily][trainingMethod]
-    ).filter((item: string) => {
-      return item.indexOf("preprocess_data") === -1;
-    });
-    form.modelNames = modelList;
-    if (form.trainingMethod) {
-      handleModel(modelList[0]);
-    }
-  } else {
-    form.modelNames = [];
-    handleModel("");
-  }
-}
 </script>
   
   <script lang="ts">

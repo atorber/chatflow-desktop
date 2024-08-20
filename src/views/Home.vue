@@ -59,6 +59,7 @@
     <TrainingParameters v-else-if="menuName == 'training'" />
     <ModelTransformation v-else-if="menuName == 'convert'" />
     <DataDreprocessing v-else-if="menuName == 'preprocess'" />
+    <TrainingTemplate v-else-if="menuName == 'trainingTemplate'" />
 
     <!-- 数据资产 -->
     <ModelWeights v-else-if="menuName == 'models'" />
@@ -105,6 +106,7 @@ import NameSpaceList from "./k8s/NamespaceList.vue";
 import PodList from "./k8s/PodList.vue";
 import PyTorchJobList from "./k8s/PyTorchJobList.vue";
 import NormalJobList from "./k8s/NormalJobList.vue";
+import TrainingTemplate from "./trainings/TrainingTemplate.vue";
 
 import { ref, computed } from "vue";
 import { useStore } from "../store"; // 确保从 vuex 导入 useStore

@@ -564,8 +564,6 @@ const props: CascaderProps = {
   },
 };
 
-const cpuPod = ref({ status: { phase: "" }, metadata: { name: "" } });
-
 /*s树形结构数据*/
 
 const active = ref(1);
@@ -595,9 +593,7 @@ const recordStore: any = computed({
   set: (value) => store.commit("updateRecord", value),
 });
 
-const record = recordStore.value;
-
-const form = record;
+const form = recordStore.value;
 
 const trainingParams = reactive(DefaultTrainingParams);
 
@@ -628,12 +624,6 @@ window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
       form.infos = params;
       setModelFamilies(params);
       break;
-    case "getSystemPod": {
-      // console.log("getSystemPod", params);
-      cpuPod.value = params;
-      // console.log("cpuPod", cpuPod.value);
-      break;
-    }
     case "initError":
       ElMessage.error("初始化失败, 请退出重启程序");
       break;
@@ -680,6 +670,8 @@ function handleSource(val: string | number | boolean | undefined) {
     handleImageVersion("");
   }
 }
+
+handleSource('预置版本')
 
 // 选择镜像版本
 function handleImageVersion(val: string) {

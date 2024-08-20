@@ -256,8 +256,7 @@ const recordStore: any = computed({
   set: (value) => store.commit("updateRecord", value),
 });
 
-const record = recordStore.value;
-const form = record;
+const form = recordStore.value;
 
 // 接收消息
 window.ipcRenderer.on("send2web", (_event: any, ...args: string[]) => {
@@ -329,6 +328,8 @@ function handleSource(val: string | number | boolean | undefined) {
     handleImageVersion("");
   }
 }
+
+handleSource('预置版本');
 
 // 选择镜像版本
 function handleImageVersion(val: string) {
@@ -479,15 +480,6 @@ function handleTrainingMethod(val: string) {
     form.trainingMethods = [];
     handleFineTuningMethod("");
   }
-}
-
-// 选择数据预处理脚本
-function handlePreprocessData() {
-  const filePath = `examples/${form.modelFamily}/${form.trainingMethod}/preprocess_data.sh`;
-  const command =
-    form.infos[form.modelFamily][form.trainingMethod]["preprocess_data.sh"];
-  form.filePath = filePath;
-  handleCommand(command);
 }
 
 // 选择微调方法
