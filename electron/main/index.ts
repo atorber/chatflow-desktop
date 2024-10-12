@@ -435,8 +435,14 @@ app.on('activate', () => {
 })
 
 ipcMain.on("get-config", () => {
-
   win.webContents.send("init", JSON.stringify(botConfig, undefined, 2));
+  // 设置环境变量
+  process.env.VIKA_SPACE_ID = botConfig.username
+  process.env.VIKA_TOKEN = botConfig.password
+  process.env.WECHATY_TOKEN = botConfig.token
+  process.env.WECHATY_PUPPET = botConfig.puppet
+  process.env.ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom
+  process.env.ENDPOINT = botConfig.endpoint
 });
 
 ipcMain.on("start-bot", async () => {

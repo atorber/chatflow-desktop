@@ -42,6 +42,48 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: release_on_${{ matrix. os }}
+          name: release_artifact
           path: release/
           retention-days: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Extract package version
+        id: package_version
+        run: |
+          echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+          echo "VERSION=${{ env.VERSION }}"
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: release_artifact
+          path: release/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Zip Release Files
+        run: zip -r Release_Asset_${{ github.run_number }}.zip ./release/
+        
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/
+          asset_name: Release_Asset_${{ github.run_number }}.zip
+          asset_content_type: application/zip
