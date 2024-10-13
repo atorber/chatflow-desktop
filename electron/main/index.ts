@@ -22,11 +22,17 @@ import {
 import fs from 'fs'
 import path from 'path'
 
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../backend/src/app.module';
+import { fork } from 'child_process';
+
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
 
 console.log('__filename:', __filename)
 console.log('__dirname:', __dirname)
+
+let nestProcess: any = null;
 
 // 获取当前目录的根目录
 let rootPath = app.getPath('exe');
@@ -410,7 +416,34 @@ async function createWindow() {
   })
 }
 
-app.whenReady().then(createWindow)
+async function bootstrap() {
+  const appNest = await NestFactory.create(AppModule);
+  appNest.enableCors({ origin: '*', credentials: true });
+  const port = process.env.PORT || 9503;
+  await appNest.listen(port);
+  console.log(`NestJS is running on http://localhost:${port}`);
+}
+
+// app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  // 启动 NestJS 后端
+  // const mainfile = path.join(__dirname, '/dist/src/main.js');
+  const mainfile = path.join(rootPath, 'electron/backend/dist/src/main.js');
+  console.log('mainfile:', mainfile)
+  nestProcess = fork(mainfile)
+  // bootstrap();
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('before-quit', () => {
+  if (nestProcess) {
+    nestProcess.kill();
+  }
+});
 
 app.on('window-all-closed', () => {
   win = null
@@ -501,6 +534,9 @@ ipcMain.on("stop-bot", () => {
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {
   const childWindow = new BrowserWindow({
+    title: 'Main window',
+    width: 1366,
+    height: 768,
     webPreferences: {
       preload,
       nodeIntegration: true,
