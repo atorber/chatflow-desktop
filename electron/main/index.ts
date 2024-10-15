@@ -22,11 +22,17 @@ import {
 import fs from 'fs'
 import path from 'path'
 
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../backend/src/app.module';
+import { fork } from 'child_process';
+
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
 
 console.log('__filename:', __filename)
 console.log('__dirname:', __dirname)
+
+let nestProcess: any = null;
 
 // 获取当前目录的根目录
 let rootPath = app.getPath('exe');
@@ -96,7 +102,7 @@ if (!fs.existsSync(join(dataPath, 'data/config.json'))) {
   fs.writeFileSync(join(dataDir, 'config.json'), JSON.stringify({
     "username": "",
     "password": "",
-    "endpoint": "http:chat.vlist.cc",
+    "endpoint": "http://chat.vlist.cc",
     "puppet": "wechaty-puppet-wechat4u",
     "token": "",
     "adminRoom": "",
@@ -271,99 +277,6 @@ async function onMessage(message) {
   }
 }
 
-const startBot = async () => {
-  if (!wechatyIsOn) {
-    // 从环境变量中获取配置信息, 在环境变量中已经配置了以下信息或者直接赋值
-    const WECHATY_PUPPET = botConfig.puppet
-    const WECHATY_TOKEN = botConfig.token
-    const VIKA_SPACE_ID = botConfig.username
-    const VIKA_TOKEN = botConfig.password
-    const ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom // 管理群的topic，可选
-    const endpoint = botConfig.endpoint
-
-    const chatFlowOps:ChatFlowOptions = {
-      spaceId: VIKA_SPACE_ID,
-      token: VIKA_TOKEN,
-      adminRoomTopic: ADMINROOM_ADMINROOMTOPIC,
-      endpoint,
-      dataDir:dataPath,
-    }
-
-    console.log('chatFlowOps:', chatFlowOps)
-
-    // 构建wechaty机器人
-    const ops = getBotOps(WECHATY_PUPPET, WECHATY_TOKEN) // 获取wechaty配置信息
-    bot = WechatyBuilder.build(ops)
-
-    // 初始化检查数据库表，如果不存在则创建
-    try {
-      await init(chatFlowOps)
-    } catch (e) {
-      logForm('初始化检查失败：' + JSON.stringify(e))
-    }
-
-    const config = {
-      events: [
-        "login",
-        "logout",
-        "reset",
-        "ready",
-        "dirty",
-        "dong",
-        "error",
-        // 'heartbeat',
-        "friendship",
-        "message",
-        "post",
-        "room-invite",
-        "room-join",
-        "room-leave",
-        "room-topic",
-        "scan",
-      ],
-      mqtt: {
-        clientId: "ding-dong-test01", // 替换成自己的clientId，建议不少于16个字符串
-        host: "127.0.0.1",
-        password: "",
-        port: 1883,
-        username: "",
-      },
-      options: {
-        secrectKey: "",
-        simple: false,
-      },
-      token: "",
-    };
-
-    // 启用ChatFlow插件
-    bot.use(ChatFlow(chatFlowOps))
-
-    bot.on("login", onLogin);
-    bot.on("message", onMessage);
-    bot.on("scan", onScan);
-
-    bot
-      .start()
-      .then(() => {
-        wechatyIsOn = true;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${getTime()}:Bot已启动！\n` + result;
-        win.webContents.send("action-result", result);
-        return log.info("StarterBot", "Starter Bot Started.");
-      })
-      .catch((err) => {
-        console.error("bot start error", err);
-        wechatyIsOn = false;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${getTime()}:启动Bot时发生错误...${err}\n` + result;
-        win.webContents.send("action-result", result);
-      });
-  } else {
-    result = `${getTime()}:Bot已在运行中...\n` + result;
-    win.webContents.send("action-result", result);
-  }
-};
-
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Main window',
@@ -408,9 +321,39 @@ async function createWindow() {
   win.on('closed', () => {
     win = null
   })
+
+  // 打开开发者工具
+  win.webContents.openDevTools();
 }
 
-app.whenReady().then(createWindow)
+async function bootstrap() {
+  const appNest = await NestFactory.create(AppModule);
+  appNest.enableCors({ origin: '*', credentials: true });
+  const port = process.env.PORT || 9503;
+  await appNest.listen(port);
+  console.log(`NestJS is running on http://localhost:${port}`);
+}
+
+// app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  // 启动 NestJS 后端
+  const mainfile = path.join(__dirname, '/backend/dist/src/main.js');
+  // const mainfile = path.join(rootPath, 'electron/backend/dist/src/main.js');
+  console.log('mainfile:', mainfile)
+  nestProcess = fork(mainfile)
+  // bootstrap();
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('before-quit', () => {
+  if (nestProcess) {
+    nestProcess.kill();
+  }
+});
 
 app.on('window-all-closed', () => {
   win = null
@@ -445,15 +388,131 @@ ipcMain.on("get-config", () => {
   process.env.ENDPOINT = botConfig.endpoint
 });
 
+// 优化后的 startBot 函数
+const startBot = async () => {
+  if (wechatyIsOn) {
+    result = `${getTime()}:正在停止当前Bot以启动新的实例...\n` + result;
+    win.webContents.send("action-result", result);
+    await stopBot(); // 先停止现有的Bot
+  }
+
+  // 从配置文件中读取最新的配置信息
+  botConfig = readConfig();
+  console.log('botConfig:', botConfig);
+
+  // 设置环境变量
+  process.env.VIKA_SPACE_ID = botConfig.username;
+  process.env.VIKA_TOKEN = botConfig.password;
+  process.env.WECHATY_TOKEN = botConfig.token;
+  process.env.WECHATY_PUPPET = botConfig.puppet;
+  process.env.ADMINROOM_ADMINROOMTOPIC = botConfig.adminRoom;
+  process.env.ENDPOINT = botConfig.endpoint;
+
+  // 从环境变量中获取配置信息
+  const WECHATY_PUPPET = process.env.WECHATY_PUPPET;
+  const WECHATY_TOKEN = process.env.WECHATY_TOKEN;
+  const VIKA_SPACE_ID = process.env.VIKA_SPACE_ID;
+  const VIKA_TOKEN = process.env.VIKA_TOKEN;
+  const ADMINROOM_ADMINROOMTOPIC = process.env.ADMINROOM_ADMINROOMTOPIC;
+  const endpoint = process.env.ENDPOINT;
+
+  const chatFlowOps = {
+    spaceId: VIKA_SPACE_ID,
+    token: VIKA_TOKEN,
+    adminRoomTopic: ADMINROOM_ADMINROOMTOPIC,
+    endpoint,
+    dataDir: dataPath,
+  };
+
+  console.log('chatFlowOps:', chatFlowOps);
+
+  // 构建wechaty机器人
+  const ops = getBotOps(WECHATY_PUPPET, WECHATY_TOKEN);
+  bot = WechatyBuilder.build(ops);
+
+  // 初始化检查数据库表，如果不存在则创建
+  try {
+    await init(chatFlowOps);
+  } catch (e) {
+    logForm('初始化检查失败：' + JSON.stringify(e));
+  }
+
+  // 启用ChatFlow插件
+  bot.use(ChatFlow(chatFlowOps));
+
+  // 绑定事件
+  bot.on("login", onLogin);
+  bot.on("message", onMessage);
+  bot.on("scan", onScan);
+
+  // 启动Bot
+  try {
+    await bot.start();
+    wechatyIsOn = true;
+    win.webContents.send("wechatyIsOn-result", wechatyIsOn);
+    result = `${getTime()}:Bot已启动！\n` + result;
+    win.webContents.send("action-result", result);
+    log.info("StarterBot", "Starter Bot Started.");
+  } catch (err) {
+    console.error("bot start error", err);
+    wechatyIsOn = false;
+    win.webContents.send("wechatyIsOn-result", wechatyIsOn);
+    result = `${getTime()}:启动Bot时发生错误...${err}\n` + result;
+    win.webContents.send("action-result", result);
+  }
+};
+
+// 优化后的 stopBot 函数
+const stopBot = async () => {
+  if (wechatyIsOn && bot) {
+    try {
+      // await bot.stop();
+      wechatyIsOn = false;
+      bot = null;
+      win.webContents.send("wechatyIsOn-result", wechatyIsOn);
+      const timeutc = getTime();
+      result = `${timeutc}:Bot已停止...\n` + result;
+      win.webContents.send("action-result", result);
+      log.info("StarterBot", "Bot 已停止.");
+    } catch (err) {
+      console.error("bot stop error", err);
+      const timeutc = getTime();
+      result = `${timeutc}:Bot停止时发生错误...${err}\n` + result;
+      win.webContents.send("action-result", result);
+    }
+  } else {
+    const timeutc = getTime();
+    result = `${timeutc}:Bot未在运行...\n` + result;
+    win.webContents.send("action-result", result);
+  }
+};
+
+// 优化后的 IPC 事件处理器
 ipcMain.on("start-bot", async () => {
   try {
-    console.log('start-bot...')
-    await startBot();
+    console.log('start-bot...');
+    await startBot(); // 直接调用优化后的 startBot
     result = `${getTime()}:ChatFlow启动中...\n` + result;
     win.webContents.send("action-result", result);
   } catch (e) {
     console.error("start-bot error", e);
     result = `${getTime()}:ChatFlow启动失败：${e}\n` + result;
+    win.webContents.send("action-result", result);
+  }
+});
+
+ipcMain.on("stop-bot", async () => { // 修改为 async
+  const timeutc = getTime();
+  if (wechatyIsOn && bot) {
+    try {
+      await stopBot(); // 调用优化后的 stopBot
+    } catch (e) {
+      console.error("stop-bot error", e);
+      result = `${timeutc}:停止Bot时发生错误...${e}\n` + result;
+      win.webContents.send("action-result", result);
+    }
+  } else {
+    result = `${timeutc}:Bot未在运行...\n` + result;
     win.webContents.send("action-result", result);
   }
 });
@@ -474,33 +533,12 @@ ipcMain.on("start-test", (event, data) => {
   win.webContents.send("action-result", result);
 });
 
-ipcMain.on("stop-bot", () => {
-  const timeutc = getTime();
-  if (wechatyIsOn && bot) {
-    bot
-      .stop()
-      .then(() => {
-        wechatyIsOn = false;
-        win.webContents.send("wechatyIsOn-result", wechatyIsOn);
-        result = `${timeutc}:bot已停止...\n` + result;
-        win.webContents.send("action-result", result);
-      })
-      .catch((err) => {
-        console.error("bot stop error", err);
-        result = `${timeutc}:bot停止时发生错误...${err}\n` + result;
-        win.webContents.send("action-result", result);
-      });
-    bot = null;
-    wechatyIsOn = false;
-  } else {
-    result = `${timeutc}:Bot未在运行...\n` + result;
-    win.webContents.send("action-result", result);
-  }
-});
-
 // New window example arg: new windows url
 ipcMain.handle('open-win', (_, arg) => {
   const childWindow = new BrowserWindow({
+    title: 'Main window',
+    width: 1366,
+    height: 768,
     webPreferences: {
       preload,
       nodeIntegration: true,

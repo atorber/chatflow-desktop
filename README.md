@@ -1,57 +1,26 @@
-# electron-vite-vue
+# ChatFlow Desktop
 
-🥳 Really simple `Electron` + `Vue` + `Vite` boilerplate.
+## 特性
 
-<!-- [![awesome-vite](https://awesome.re/mentioned-badge.svg)](https://github.com/vitejs/awesome-vite) -->
-<!-- [![Netlify Status](https://api.netlify.com/api/v1/badges/ae3863e3-1aec-4eb1-8f9f-1890af56929d/deploy-status)](https://app.netlify.com/sites/electron-vite/deploys) -->
-<!-- [![GitHub license](https://img.shields.io/github/license/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue/blob/main/LICENSE) -->
-<!-- [![GitHub stars](https://img.shields.io/github/stars/caoxiemeihao/electron-vite-vue?color=fa6470)](https://github.com/electron-vite/electron-vite-vue) -->
-<!-- [![GitHub forks](https://img.shields.io/github/forks/caoxiemeihao/electron-vite-vue)](https://github.com/electron-vite/electron-vite-vue) -->
-[![GitHub Build](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml/badge.svg)](https://github.com/electron-vite/electron-vite-vue/actions/workflows/build.yml)
-[![GitHub Discord](https://img.shields.io/badge/chat-discord-blue?logo=discord)](https://discord.gg/sRqjYpEAUK)
+📦 一键启动chatflow  
+🎯 支持网页版和PC版WeChat  
 
-## Features
+![Description](https://github.com/user-attachments/assets/e413ebc5-9427-4255-85dd-52d29b4f7156)
 
-📦 Out of the box  
-🎯 Based on the official [template-vue-ts](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vue-ts), less invasive  
-🌱 Extensible, really simple directory structure  
-💪 Support using Node.js API in Electron-Renderer  
-🔩 Support C/C++ native addons  
-🖥 It's easy to implement multiple windows  
-
-## Quick Setup
+## 快速开始
 
 ```sh
-# clone the project
-git clone https://github.com/electron-vite/electron-vite-vue.git
+# 下载代码
+git clone https://github.com/atorber/chatflow-desktop.git
 
-# enter the project directory
-cd electron-vite-vue
+# 进入目录
+cd chatflow-desktop
 
-# install dependency
+# 安装依赖
 npm install
 
 # develop
 npm run dev
-```
-
-## Debug
-
-![electron-vite-react-debug.gif](https://github.com/electron-vite/electron-vite-react/blob/main/electron-vite-react-debug.gif?raw=true)
-
-## Directory
-
-```diff
-+ ├─┬ electron
-+ │ ├─┬ main
-+ │ │ └── index.ts    entry of Electron-Main
-+ │ └─┬ preload
-+ │   └── index.ts    entry of Preload-Scripts
-  ├─┬ src
-  │ └── main.ts       entry of Electron-Renderer
-  ├── index.html
-  ├── package.json
-  └── vite.config.ts
 ```
 
 <!--
@@ -75,5 +44,10 @@ export default {
 
 ## FAQ
 
-- [C/C++ addons, Node.js modules - Pre-Bundling](https://github.com/electron-vite/vite-plugin-electron-renderer#dependency-pre-bundling)
-- [dependencies vs devDependencies](https://github.com/electron-vite/vite-plugin-electron-renderer#dependencies-vs-devdependencies)
+- [访问项目语雀文档查看完整使用说明](https://www.yuque.com/atorber/chatflow)
+
+## 版本记录
+
+### 1.0.41
+
+- 初始化版本
