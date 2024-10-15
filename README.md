@@ -5,7 +5,7 @@
 📦 一键启动chatflow  
 🎯 支持网页版和PC版WeChat  
 
-![Description](https://github.com/user-attachments/assets/e413ebc5-9427-4255-85dd-52d29b4f7156)
+![Description](https://github.com/user-attachments/assets/dfb70c5c-527c-4cd6-87ca-27b8675a26e4)
 
 ## 快速开始
 
