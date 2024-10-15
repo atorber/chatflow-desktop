@@ -40,6 +40,18 @@ const startBot = () => {
   }
 };
 
+// 停止机器人
+const stopBot = () => {
+  window.ipcRenderer.send("stop-bot");
+  ElMessage.success("机器人停止中...");
+};
+
+// 停止机器人
+const restartBot = () => {
+  window.ipcRenderer.send("start-bot");
+  ElMessage.success("机器人重启中...");
+};
+
 // 获取配置
 const getConfig = () => {
   window.ipcRenderer.send("get-config");
@@ -198,6 +210,8 @@ export default {
             <el-button type="primary" @click="getConfig">载入</el-button>
             <el-button type="success" @click="start(info)">设定</el-button>
             <el-button type="warning" @click="startBot">启动</el-button>
+            <el-button type="info" @click="restartBot">重启</el-button>
+            <el-button type="error" @click="stopBot">停止</el-button>
           </el-form-item>
 
           <!-- 错误信息 -->

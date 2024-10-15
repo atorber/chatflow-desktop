@@ -33,3 +33,5 @@ data/media/*
 data/db/*
 data/*
 chatflow.*.json
+*.jpg
+msgStore.json
