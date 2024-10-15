@@ -19,6 +19,9 @@
 🔩 Support C/C++ native addons  
 🖥 It's easy to implement multiple windows  
 
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/e413ebc5-9427-4255-85dd-52d29b4f7156">
+
+
 ## Quick Setup
 
 ```sh
