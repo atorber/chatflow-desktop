@@ -1,6 +1,6 @@
 {
   "name": "chatflow-client",
-  "version": "1.0.41",
+  "version": "1.0.42",
   "main": "dist-electron/main/index.js",
   "type": "module",
   "description": "Really simple Electron + Vue + Vite boilerplate.",
@@ -28,7 +28,7 @@
     "utf8": "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8"
   },
   "dependencies": {
-    "@atorber/chatflow": "^3.0.22",
+    "@atorber/chatflow": "^3.0.23",
     "@aws-sdk/client-s3": "^3.670.0",
     "@element-plus/icons-vue": "^2.3.1",
     "@jimp/js-bmp": "^1.6.0",
@@ -41,6 +41,7 @@
     "@pipeletteio/nop": "^1.0.5",
     "@vikadata/vika": "^1.4.1",
     "aedes": "^0.51.0",
+    "aedes-server-factory": "^0.2.1",
     "ansi-align": "^3.0.1",
     "aws-sdk": "^2.1691.0",
     "axios": "^1.6.7",

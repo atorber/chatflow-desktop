@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { mqttServerWs } from './mqtt-broker';
+
+console.log('mqttServerWs', mqttServerWs);
 
 process.on('uncaughtException', (err) => {
   console.error('未捕获的异常:', err);
